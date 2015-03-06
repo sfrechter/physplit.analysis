@@ -1,0 +1,10 @@
+Package: physplit.analysis
+Type: Package
+Title: Packaged and versioned Analysis functions for Shahar's cells
+Version: 0.1
+Date: 2015-03-06
+Author: Shahar Greg Ashley
+Maintainer: Shahar Frechter <sfrechter@gmail.com>
+Description: assorted analysis functions
+License: GPL-3
+LazyData: TRUE
