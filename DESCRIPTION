@@ -8,4 +8,4 @@ Maintainer: Shahar Frechter <sfrechter@gmail.com>
 Description: assorted analysis functions
 License: GPL-3
 LazyData: TRUE
-Depends: gphys
+Depends: gphys, physplitdata
