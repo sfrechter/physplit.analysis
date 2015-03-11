@@ -4,4 +4,5 @@
 #'
 #' @docType package
 #' @name physplit.analysis
+#' @import gphys
 NULL
