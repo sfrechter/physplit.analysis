@@ -9,3 +9,4 @@ Description: assorted analysis functions
 License: GPL-3
 LazyData: TRUE
 Depends: gphys, physplitdata
+Suggests: ggplot2
