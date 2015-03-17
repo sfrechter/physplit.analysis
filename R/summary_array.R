@@ -22,7 +22,7 @@
 #' qplot(baseline,col=Group, data=subset(physplit, Group%in%c("L","O","PN")), geom='density')
 create_raw_summary_array<-function(x=physplitdata::smSpikes) {
 
-  allfreqs=sapply(x,function(psthsforcell) sapply(psthsforcell,function(psth) psth$freq))
+  allfreqs=lapply(x,function(psthsforcell) sapply(psthsforcell,function(psth) psth$freq))
   allodours=unique(unlist(sapply(x,names)))
   allfreqs_allodours=lapply(allfreqs,addnacols,allodours)
 
