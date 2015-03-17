@@ -32,7 +32,7 @@ create_raw_summary_array<-function(x=physplitdata::smSpikes) {
   stat_names <- c("baseline", "max1", "max2", "max3", "max4", "max5", "max6")
   summary_array <- array(dim=c(num_cells, num_odours, num_stats), dimnames=list(names(x), allodours, stat_names))
 
-  summary_array[, , 'baseline'] <- t(sapply(allfreqs_allodours, function(x) colMeans(x[2:9, ])))
+  summary_array[, , 'baseline'] <- t(sapply(allfreqs_allodours, function(x) colMeans(x[1, ])))
   colMax=function(x) apply(x, 2, max)
   summary_array[, , 'max1'] <- t(sapply(allfreqs_allodours, function(x) colMax(x[12:19, ])))
   summary_array[, , 'max2'] <- t(sapply(allfreqs_allodours, function(x) colMax(x[16:23, ])))
