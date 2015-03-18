@@ -24,7 +24,7 @@ heatmap_cor_dist<-function(cells, odours, col=jet.colors(20), ...) {
     physplit=cells
     cells=physplit$cell
   } else {
-    physplit=PhySplitDB[match(cells, physplitdata::PhySplitDB$cell),]
+    physplit=physplitdata::PhySplitDB[match(cells, physplitdata::PhySplitDB$cell),]
   }
   rownames(physplit)=physplit$cell
 
