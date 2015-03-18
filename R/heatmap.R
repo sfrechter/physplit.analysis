@@ -23,7 +23,7 @@ heatmap_cor_dist<-function(cells, odours, col=jet.colors(20), ...) {
   if(missing(odours)) odours = unique(unlist(sapply(physplitdata::smSpikes,names)))
 
   # now collect responses that we need
-  allfreqs=sapply(physplitdata::smSpikes[cells],
+  allfreqs=lapply(physplitdata::smSpikes[cells],
                   function(psthsforcell) sapply(psthsforcell,function(x) x$freq))
   # pad those frequencies with columns of NAs for missing odours
   # also reorder odours into the order given by odours
