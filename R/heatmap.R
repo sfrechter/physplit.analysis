@@ -7,6 +7,7 @@
 #'   function such as \code{\link{jet.colors}}. Defaults to
 #'   \code{jet.colors(20)}.
 #' @param ... Additional parameters passed to \code{\link{heatmap}} function
+#' @export
 heatmap_cor_dist<-function(cells, odours, col=jet.colors(20), ...) {
   # First get the database info we need.
   # End up with a data.frame in the order of cells
