@@ -20,6 +20,7 @@
 #' physplit$baseline=baseline_cell[physplit$cell]
 #' library(ggplot2)
 #' qplot(baseline,col=Group, data=subset(physplit, Group%in%c("L","O","PN")), geom='density')
+source('~/projects/physplit.analysis/R/odourMatrix.R')
 create_raw_summary_array<-function(x=physplitdata::smSpikes) {
 
   allfreqs=lapply(x,function(psthsforcell) sapply(psthsforcell,function(psth) psth$freq))
