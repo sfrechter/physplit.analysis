@@ -4,11 +4,14 @@
 \alias{create_raw_summary_array}
 \title{Create the raw summary array for all spikes}
 \usage{
-create_raw_summary_array(x = physplitdata::smSpikes)
+create_raw_summary_array(x = physplitdata::smSpikes, cells = NULL)
 }
 \arguments{
 \item{x}{A list of smoothed psth objects for cell/odours combinations.
 Defaults to \code{\link{smSpikes}}}
+
+\item{cells}{A character vector of cell names enabling calculation of
+summary_array for a subset of the data.}
 }
 \description{
 Create the raw summary array for all spikes
@@ -21,6 +24,9 @@ hist(summary_array[,,'baseline'])
 # i.e. average baseline firing rate for each cell
 baseline_cell=rowMeans(summary_array[,,'baseline'], na.rm=TRUE)
 hist(baseline_cell, xlab='Firing freq /Hz')
+
+# examples of calculating summary for all cells
+summary_array3=create_raw_summary_array(cells=c("nm20140714c1", "nm20150305c0", "nm20141128c0"))
 
 # Plot density distributions by cell group
 pns=subset(PhySplitDB, Group=='PN' & cell \%in\% names(smSpikes))$cell

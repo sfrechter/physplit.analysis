@@ -2,6 +2,8 @@
 #'
 #' @param x A list of smoothed psth objects for cell/odours combinations.
 #'   Defaults to \code{\link{smSpikes}}
+#' @param cells A character vector of cell names enabling calculation of
+#'   summary_array for a subset of the data.
 #' @export
 #' @import physplitdata
 #' @examples
@@ -13,6 +15,9 @@
 #' baseline_cell=rowMeans(summary_array[,,'baseline'], na.rm=TRUE)
 #' hist(baseline_cell, xlab='Firing freq /Hz')
 #'
+#' # examples of calculating summary for all cells
+#' summary_array3=create_raw_summary_array(cells=c("nm20140714c1", "nm20150305c0", "nm20141128c0"))
+#'
 #' # Plot density distributions by cell group
 #' pns=subset(PhySplitDB, Group=='PN' & cell %in% names(smSpikes))$cell
 #' physplit=PhySplitDB[match(names(smSpikes), PhySplitDB$cell), ]
@@ -20,7 +25,12 @@
 #' physplit$baseline=baseline_cell[physplit$cell]
 #' library(ggplot2)
 #' qplot(baseline,col=Group, data=subset(physplit, Group%in%c("L","O","PN")), geom='density')
-create_raw_summary_array<-function(x=physplitdata::smSpikes) {
+create_raw_summary_array<-function(x=physplitdata::smSpikes, cells=NULL) {
+  if(!is.null(cells)) {
+    if(!all(cells%in%names(x)))
+      stop("Some cells are not present in cell list x!")
+    x=x[cells]
+  }
 
   allfreqs=lapply(x,function(psthsforcell) sapply(psthsforcell,function(psth) psth$freq))
   allodours=unique(unlist(sapply(x,names)))
