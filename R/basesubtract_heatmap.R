@@ -27,27 +27,8 @@ basesubtract_heatmap_cor_dist<-function(cells, odours, col=jet.colors(20),
                     function(psthsforcell) sapply(psthsforcell,function(x) x$freq))
 
     if (basesubtract==T) {
-
-      cellbaseline=list()
-      allfreqs_base=list()
-      for (cell in cells) {
-        baseline_psth=allfreqs[[cell]][baselinesamples,]
-        cellbaseline[[cell]]=colMeans(baseline_psth)
-        allfreqs_base[[cell]]=scale(allfreqs[[cell]],
-                                    center=cellbaseline[[cell]], scale=FALSE)
-      }
-
-      # check that the mean is correctly subtracted by recalculating the mean baseline
-      # (should be zero)
-      cellbaseline_rebase=list()
-      for (cell in cells) {
-        cellbaseline_rebase[[cell]]=colMeans(allfreqs_base[[cell]][baselinesamples,])
-      }
-      stopifnot(all(abs(cellbaseline_rebase[[cell]])<1e-5))
-
-      allfreqs=allfreqs_base
+      allfreqs=baseline_subtract_allfreqs(allfreqs, baselinesamples=baselinesamples)
     }
-
 
     # pad those frequencies with columns of NAs for missing odours
     # also reorder odours into the order given by odours
@@ -69,4 +50,39 @@ basesubtract_heatmap_cor_dist<-function(cells, odours, col=jet.colors(20),
     # dendrogram is based on distance of 1-correlation score, but the
     # colours in the heatmap are still the correlation scores (ie hot is highly correlated)
     heatmap(spcor,distfun=function(x) as.dist(1-x),scale='none',symm=T, col=col, ...)
+}
+
+#' Subtract baseline spike rate from list of smoothed psth data
+#'
+#' @param allfreqs A list with one entry per cell, where each entry contains a
+#'   matrix of smoothed psth data where rows are timepoints and columns are
+#'   odours. This is equivalent to pulling the freq component out of
+#'   \code{physplitdata::\link{smSpikes}} object.
+#' @param baselinesamples Integer indices of the timepoints to use for the
+#'   baseline. These are 50ms time points for \code{smSpikes}
+#' @examples
+#' cells=c("nm20140714c1", "nm20150305c0", "nm20141128c0", "nm20140901c0")
+#' allfreqs=lapply(physplitdata::smSpikes[cells],
+#' function(psthsforcell) sapply(psthsforcell,function(x) x$freq))
+#' baseline_subtract_allfreqs(allfreqs, baselinesamples=1:5)
+#' @export
+baseline_subtract_allfreqs <- function (allfreqs, baselinesamples=1:5) {
+  cellbaseline=list()
+  allfreqs_base=list()
+  for (cell in names(allfreqs)) {
+    baseline_psth=allfreqs[[cell]][baselinesamples,]
+    cellbaseline[[cell]]=colMeans(baseline_psth)
+    allfreqs_base[[cell]]=scale(allfreqs[[cell]],
+                                center=cellbaseline[[cell]], scale=FALSE)
+  }
+
+  # check that the mean is correctly subtracted by recalculating the mean baseline
+  # (should be zero)
+  cellbaseline_rebase=list()
+  for (cell in cells) {
+    cellbaseline_rebase[[cell]]=colMeans(allfreqs_base[[cell]][baselinesamples,])
+  }
+  stopifnot(all(abs(cellbaseline_rebase[[cell]])<1e-5))
+
+  allfreqs_base
 }
