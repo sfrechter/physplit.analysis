@@ -17,6 +17,11 @@ information about those cells}
 function such as \code{\link{jet.colors}}. Defaults to
 \code{jet.colors(20)}.}
 
+\item{basesubtract}{Whether or not to subtract the baseline firing rate}
+
+\item{baselinesamples}{Integer indices of the timepoints to use for the
+baseline. These are 50ms time points for \code{smSpikes}}
+
 \item{...}{Additional parameters passed to \code{\link{heatmap}} function}
 }
 \description{
