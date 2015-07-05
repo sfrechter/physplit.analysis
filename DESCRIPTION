@@ -5,7 +5,7 @@ Version: 0.1
 Date: 2015-03-06
 Author: Shahar Greg Ashley
 Maintainer: Shahar Frechter <sfrechter@gmail.com>
-Description: assorted analysis functions
+Description: Assorted analysis functions for Shahar's LHN (PhySplit) dataset.
 License: GPL-3
 LazyData: TRUE
 Depends: gphys, physplitdata
