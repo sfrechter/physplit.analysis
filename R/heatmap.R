@@ -27,6 +27,11 @@ heatmap_cor_dist<-function(cells, odours, col=jet.colors(20), ...) {
     physplit=physplitdata::PhySplitDB[match(cells, physplitdata::PhySplitDB$cell),]
   }
   rownames(physplit)=physplit$cell
+  if(length(missing_cells<-setdiff(physplit$cell, names(physplitdata::smSpikes)))) {
+    warning("Dropping cells without spike data: ", paste(missing_cells, collapse = " "))
+    cells=intersect(physplit$cell, names(physplitdata::smSpikes))
+    physplit=physplit[cells, ]
+  }
 
   # if odours not specified, then use all odours
   if(missing(odours)) odours = unique(unlist(sapply(physplitdata::smSpikes,names)))
