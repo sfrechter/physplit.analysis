@@ -17,7 +17,8 @@
 #' # repeat but with class information
 #' heatmap_cor_dist(physplit.c161723, labRow=physplit.c161723$class,
 #'   labCol=NA, RowSideColors=rainbow(3)[factor(physplit.c161723$class)])
-heatmap_cor_dist<-function(cells, odours, col=jet.colors(20), ...) {
+heatmap_cor_dist<-function(cells, odours, col=jet.colors(20), labRow=NULL,
+                           labCol=NULL, ColSideColors, RowSideColors, ...) {
   # First get the database info we need.
   # End up with a data.frame in the order of cells
   if(is.data.frame(cells)) {
@@ -46,7 +47,20 @@ heatmap_cor_dist<-function(cells, odours, col=jet.colors(20), ...) {
   spcor=cor(allfreqs_odours_matrix,use='pairwise.complete.obs')
   # remove cells with no spikes
   noSpikes=names(which(is.na(spcor[, 1])))
-  spcor=spcor[!row.names(spcor)%in%noSpikes, !colnames(spcor)%in%noSpikes]
+  if(length(noSpikes)){
+    warning("There are no spikes for these odours for these cells:\n",
+            paste(noSpikes, collapse=' '))
+    spcor=spcor[!row.names(spcor)%in%noSpikes, !colnames(spcor)%in%noSpikes]
+    # now we also need to fix the row/col labels/colours since they will be out of step
+    # after we drop some cells
+    labRow=labRow[cells!=noSpikes]
+    labCol=labCol[cells!=noSpikes]
+
+    if(!missing(ColSideColors))
+      ColSideColors=ColSideColors[cells!=noSpikes]
+    if(!missing(RowSideColors))
+      RowSideColors=RowSideColors[cells!=noSpikes]
+  }
 
   # If there are no odours with spikes in common between 2 cells
   # then the correlation score will still be NA
@@ -56,5 +70,7 @@ heatmap_cor_dist<-function(cells, odours, col=jet.colors(20), ...) {
   # The Heatmap!
   # dendrogram is based on distance of 1-correlation score, but the
   # colours in the heatmap are still the correlation scores (ie hot is highly correlated)
-  heatmap(spcor,distfun=function(x) as.dist(1-x),scale='none',symm=T, col=col, ...)
+  heatmap(spcor,distfun=function(x) as.dist(1-x),scale='none',symm=T, col=col,
+          labRow=labRow, labCol=labCol, ColSideColors=ColSideColors,
+          RowSideColors=RowSideColors, ...)
 }
