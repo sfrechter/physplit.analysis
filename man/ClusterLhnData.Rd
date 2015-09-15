@@ -2,61 +2,95 @@
 % Please edit documentation in R/ClusterLhnData.R
 \name{ClusterLhnData}
 \alias{ClusterLhnData}
-\title{Title}
+\title{A function for fitting Shahar's LHN data to the linear-nonlinear-poisson
+model.}
 \usage{
-ClusterLhnData(X, Y, Fits, numClusters = 3, kalpha = 10, thalpha = 3/20,
-  tauth = 0.1, taua = 1, tauu0 = 0.5, filterLength = 20, be = 5,
-  numIters = 10000, fvalTol = 0.01, dt = 1e-05, seed = 0,
-  emptyAction = "singleton", initMode = "random", verbose = TRUE,
-  timer = "OFF", slopeRatioToStop = 100, numSlopePoints = 20,
-  checkToStopEvery = 100)
+ClusterLhnData(X, Y, ainit = NULL, numClusters = 3, kalpha = 10,
+  thalpha = 3/20, tauv0 = 0.1, taua = 1, taula = 0.5,
+  numIters = 10000, dt = 1e-05, seed = 0, initMode = "random",
+  verbose = TRUE, timer = "OFF", slopeRatioToStop = 100,
+  numSlopePoints = 20, checkToStopEvery = 100)
 }
 \arguments{
-\item{X}{dfgkdf;g asdfsadf}
+\item{X}{A binary T x S x N array indicating the odor window for each odor
+and cell.}
 
-\item{Y}{}
+\item{Y}{An integer valued T x S x N array containing the spike counts in
+each bin.}
 
-\item{Fits}{}
+\item{ainit}{A 2 x S x N containing the parameters of the fitted drives for
+each cell and odor.}
 
-\item{numClusters}{}
+\item{numClusters}{The number of clusters to use.}
 
-\item{kalpha}{}
+\item{kalpha}{The shape parameter for the gamma prior on alpha.}
 
-\item{thalpha}{}
+\item{thalpha}{The scale parameter for the gamma prior on alpha}
 
-\item{tauth}{}
+\item{tauv0}{The rate constant for the exponential prior on v0.}
 
-\item{taua}{}
+\item{taua}{The rate constant for the exponential prior on the drive
+parameters}
 
-\item{tauu0}{}
+\item{numIters}{The maximum number of iterations.}
 
-\item{filterLength}{}
+\item{dt}{The time constant of the updates.}
 
-\item{be}{}
+\item{seed}{The random seed to use.}
 
-\item{numIters}{}
+\item{initMode}{The initialization mode for the clustering. Can be "random",
+"kmeans", or "kmeans++".}
 
-\item{fvalTol}{}
+\item{verbose}{If TRUE will print out the progress of the algorithm and other
+diagonstic information.}
 
-\item{dt}{}
+\item{timer}{If "ON" will time different blocks of the code.}
 
-\item{seed}{}
+\item{slopeRatioToStop}{The ratio of the rate of change of the objective at
+the end to the start above which to terminate.}
 
-\item{emptyAction}{}
+\item{numSlopePoints}{How many points to take to compute the slope of the
+objective}
 
-\item{initMode}{}
+\item{checkToStopEvery}{How often to compute the stopping ratio.}
 
-\item{verbose}{}
+\item{taul0}{The rate constant for the exponential prior on l0.}
+}
+\value{
+A list consisting of
 
-\item{timer}{}
+  \item{seed}{The random seed used.}
 
-\item{slopeRatioToStop}{}
+  \item{a}{A 2 x S x K array containing the learned drive parameters}
 
-\item{numSlopePoints}{}
+  \item{al}{A N x 1 vector containing the learned alpha values}
 
-\item{checkToStopEvery}{}
+  \item{v0}{A N x 1 vector containing the learned v0 parameters}
+
+  \item{l0}{A N x 1 vector containing the learned l0 parameters}
+
+  \item{qnk}{A N x K matrix of the cluster responsibilities for each data
+  point.}
+
+  \item{L}{A T x S x N x K array containing the final lambda values}
+
+  \item{numIters}{The actual number of iterations that ran.}
+
+  \item{F}{A numIters x 1 array containing the objective function as function
+  of the number of iterations.}
+
+  \item{clust}{A N x 1 vector of cluster assignments.}
+
+  \item{pclust}{A N x 1 vector of the probabilities of the cluster chosen.}
+
+  \item{dclust}{A N x 1 vector of distances to its cluster center.}
+
+  \item{exitMode}{A string with the exit mode of the algorithm: "ITERS" if it
+  hit the maximum number of iterations, "SLOPE_RATIO" if it exited early due
+  to the slope ratio.}
 }
 \description{
-Title
+In the following, T: the number of time bins, S: the number of odors, N: the
+number of cells, K: the number of clusters.
 }
 
