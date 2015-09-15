@@ -1,30 +1,68 @@
-#' Title
+#' A function for fitting Shahar's LHN data to the linear-nonlinear-poisson
+#' model.
 #'
-#' @param X dfgkdf;g asdfsadf
-#' @param Y
-#' @param Fits
-#' @param numClusters
-#' @param kalpha
-#' @param thalpha
-#' @param tauth
-#' @param taua
-#' @param tauu0
-#' @param filterLength
-#' @param be
-#' @param numIters
-#' @param fvalTol
-#' @param dt
-#' @param seed
-#' @param emptyAction
-#' @param initMode
-#' @param verbose
-#' @param timer
-#' @param slopeRatioToStop
-#' @param numSlopePoints
-#' @param checkToStopEvery
+#' In the following, T: the number of time bins, S: the number of odors, N: the
+#' number of cells, K: the number of clusters.
+#'
+#' @param X A binary T x S x N array indicating the odor window for each odor
+#'   and cell.
+#' @param Y An integer valued T x S x N array containing the spike counts in
+#'   each bin.
+#' @param ainit A 2 x S x N containing the parameters of the fitted drives for
+#'   each cell and odor.
+#' @param numClusters The number of clusters to use.
+#' @param kalpha The shape parameter for the gamma prior on alpha.
+#' @param thalpha The scale parameter for the gamma prior on alpha
+#' @param tauv0 The rate constant for the exponential prior on v0.
+#' @param taua The rate constant for the exponential prior on the drive
+#'   parameters
+#' @param taul0 The rate constant for the exponential prior on l0.
+#' @param numIters The maximum number of iterations.
+#' @param dt The time constant of the updates.
+#' @param seed The random seed to use.
+#' @param initMode The initialization mode for the clustering. Can be "random",
+#'   "kmeans", or "kmeans++".
+#' @param verbose If TRUE will print out the progress of the algorithm and other
+#'   diagonstic information.
+#' @param timer If "ON" will time different blocks of the code.
+#' @param slopeRatioToStop The ratio of the rate of change of the objective at
+#'   the end to the start above which to terminate.
+#' @param numSlopePoints How many points to take to compute the slope of the
+#'   objective
+#' @param checkToStopEvery How often to compute the stopping ratio.
+#' @return A list consisting of
+#'
+#'   \item{seed}{The random seed used.}
+#'
+#'   \item{a}{A 2 x S x K array containing the learned drive parameters}
+#'
+#'   \item{al}{A N x 1 vector containing the learned alpha values}
+#'
+#'   \item{v0}{A N x 1 vector containing the learned v0 parameters}
+#'
+#'   \item{l0}{A N x 1 vector containing the learned l0 parameters}
+#'
+#'   \item{qnk}{A N x K matrix of the cluster responsibilities for each data
+#'   point.}
+#'
+#'   \item{L}{A T x S x N x K array containing the final lambda values}
+#'
+#'   \item{numIters}{The actual number of iterations that ran.}
+#'
+#'   \item{F}{A numIters x 1 array containing the objective function as function
+#'   of the number of iterations.}
+#'
+#'   \item{clust}{A N x 1 vector of cluster assignments.}
+#'
+#'   \item{pclust}{A N x 1 vector of the probabilities of the cluster chosen.}
+#'
+#'   \item{dclust}{A N x 1 vector of distances to its cluster center.}
+#'
+#'   \item{exitMode}{A string with the exit mode of the algorithm: "ITERS" if it
+#'   hit the maximum number of iterations, "SLOPE_RATIO" if it exited early due
+#'   to the slope ratio.}
 #' @export
-#'
-ClusterLhnData <- function(X, Y, Fits, numClusters=3, kalpha=10, thalpha=3/20, tauth = 0.1, taua=1, tauu0=0.5, filterLength=20, be=5, numIters=10000, fvalTol=1e-2, dt=1e-5, seed=0, emptyAction="singleton", initMode="random", verbose=TRUE, timer="OFF", slopeRatioToStop=100, numSlopePoints=20, checkToStopEvery=100){
+ClusterLhnData <- function(X, Y, ainit = NULL, numClusters=3, kalpha=10, thalpha=3/20, tauv0 = 0.1, taua=1, taula=0.5, numIters=10000, dt=1e-5, seed=0, initMode="random", verbose=TRUE, timer="OFF", slopeRatioToStop=100, numSlopePoints=20, checkToStopEvery=100){
   set.seed(seed);
   Timers = TIMER_INIT(status=timer);
 
@@ -44,16 +82,14 @@ ClusterLhnData <- function(X, Y, Fits, numClusters=3, kalpha=10, thalpha=3/20, t
   Y = array(rep(Y,K), dim=c(dim(Y), K));
   lfY= log(factorial(Y));
 
-  l0     = matrix(rexp(N,rate=1/tauu0),        nrow=N);
-  v0     = matrix(rexp(N,rate=1/tauth),        nrow=N);
+  l0     = matrix(rexp(N,rate=1/taul0),        nrow=N);
+  v0     = matrix(rexp(N,rate=1/tauv0),        nrow=N);
   al     = matrix(rgamma(N, shape=kalpha, scale=thalpha), nrow=N);
   F      = matrix(NaN, nrow=numIters, ncol=1);
 
   ## Initialize the clusters
-  ainit = array(unlist(Fits[,"aest"]), c(2,S,N), dimnames = list(list("aa","ar"), dimnames(X[[2]]), dimnames(X[[3]])));
   a = array(0,c(2,S,K));
-
-  if (initMode=="random"){
+  if (initMode=="random" || is.null(ainit)){
     a = array(runif(n = 2*K*S), dim=c(2,K,S), dimnames = list(list("aa","ar"), dimnames(X[[3]]), sapply(1:numClusters, function (i) {sprintf("cluster%d", i)})));
   }else if (initMode=="kmeans"){
     isample = sample(N,size=S,replace=FALSE);
