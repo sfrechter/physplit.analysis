@@ -5,4 +5,5 @@
 #' @docType package
 #' @name physplit.analysis
 #' @import gphys
+#' @useDynLib physplit.analysis
 NULL
