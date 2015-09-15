@@ -71,6 +71,9 @@ ClusterLhnData <- function(X, Y, ainit = NULL, numClusters=3, kalpha=10, thalpha
   N = dim(X)[[3]]; # Number of cells
   K = numClusters; # Number of clusters
 
+  if (K>N)
+      stop(sprintf("Number of clusters %d is greater than number of data points %d.", K, N));
+  
   SCALE_GRAD <- function(g){
     ng = sqrt(sum(g^2));
     return(g/max(1,ng));
@@ -89,7 +92,12 @@ ClusterLhnData <- function(X, Y, ainit = NULL, numClusters=3, kalpha=10, thalpha
 
   ## Initialize the clusters
   a = array(0,c(2,S,K));
-  if (initMode=="random" || is.null(ainit)){
+  if (initMode=="single"){
+      if (K != 1)
+          stop("Number of clusters must equal 1 when fitting a single data point.");
+      a[1,,] = 1;
+      a[2,,] = 0.1;
+  }else if (initMode=="random" || is.null(ainit)){
     a = array(runif(n = 2*K*S), dim=c(2,K,S), dimnames = list(list("aa","ar"), dimnames(X[[3]]), sapply(1:numClusters, function (i) {sprintf("cluster%d", i)})));
   }else if (initMode=="kmeans"){
     isample = sample(N,size=S,replace=FALSE);
@@ -207,5 +215,8 @@ ClusterLhnData <- function(X, Y, ainit = NULL, numClusters=3, kalpha=10, thalpha
   clust =  apply(qnk, 1, "which.max");
   pclust =  apply(qnk, 1, "max");
   dclust = -diag(apply(LL[,,,clust],c(3,4),FUN="sum"));
-  results= list(a = a, al = al, v0 = v0, l0 = l0, qnk = qnk, F = F[1:t], L = L,clust=clust, pclust=pclust, dclust=dclust, numIters = t, seed = seed, exitMode = exitMode);
+  Lclust = array(data=0, dim=c(T,S,N));
+  for (i in 1:N)
+      Lclust[,,i] = L[,,i,clust[[i]]];
+  results= list(a = a, al = al, v0 = v0, l0 = l0, qnk = qnk, F = F[1:t], L = L, Lclust = Lclust, clust=clust, pclust=pclust, dclust=dclust, numIters = t, seed = seed, exitMode = exitMode);
 }
