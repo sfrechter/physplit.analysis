@@ -62,9 +62,13 @@
 #'   hit the maximum number of iterations, "SLOPE_RATIO" if it exited early due
 #'   to the slope ratio.}
 #' @export
-ClusterLhnData <- function(X, Y, ainit = NULL, numClusters=3, kalpha=10, thalpha=3/20, tauv0 = 0.1, taua=1, taula=0.5, numIters=10000, dt=1e-5, seed=0, initMode="random", verbose=TRUE, timer="OFF", slopeRatioToStop=100, numSlopePoints=20, checkToStopEvery=100){
+ClusterLhnData <- function(X, Y, ainit = NULL, numClusters=3, kalpha=10, thalpha=3/20, tauv0 = 0.1, taua=1, taul0=0.5, minIters = 0, numIters=10000, dt=1e-5, seed=0, initMode="random", verbose=TRUE, timer="OFF", slopeRatioToStop=100, numSlopePoints=20, checkToStopEvery=100, keepHistory = NULL){
   set.seed(seed);
   Timers = TIMER_INIT(status=timer);
+
+  ## If X and Y have data for just 1 cell, add a singleton dimension so the rest of the code doesn't complain.
+  if (length(dim(X))==2) X = array(X,dim = c(dim(X),1));
+  if (length(dim(Y))==2) Y = array(Y,dim = c(dim(Y),1));
 
   T = dim(X)[[1]]; # Number of bins
   S = dim(X)[[2]]; # Number of odors
@@ -73,7 +77,7 @@ ClusterLhnData <- function(X, Y, ainit = NULL, numClusters=3, kalpha=10, thalpha
 
   if (K>N)
       stop(sprintf("Number of clusters %d is greater than number of data points %d.", K, N));
-  
+
   SCALE_GRAD <- function(g){
     ng = sqrt(sum(g^2));
     return(g/max(1,ng));
@@ -98,7 +102,7 @@ ClusterLhnData <- function(X, Y, ainit = NULL, numClusters=3, kalpha=10, thalpha
       a[1,,] = 1;
       a[2,,] = 0.1;
   }else if (initMode=="random" || is.null(ainit)){
-    a = array(runif(n = 2*K*S), dim=c(2,K,S), dimnames = list(list("aa","ar"), dimnames(X[[3]]), sapply(1:numClusters, function (i) {sprintf("cluster%d", i)})));
+    a = array(runif(n = 2*K*S), dim=c(2,S,K));
   }else if (initMode=="kmeans"){
     isample = sample(N,size=S,replace=FALSE);
     a      = ainit[,,isample];
@@ -130,6 +134,8 @@ ClusterLhnData <- function(X, Y, ainit = NULL, numClusters=3, kalpha=10, thalpha
   }else{
     stop(sprintf("Unknown initMode '%s'.\n", initMode));
   }
+  ## Initialize the history object
+  history = NULL;
 
   ## Begin the iterations
   if (verbose) pb = txtProgressBar(min=1,max=numIters,initial=1,style=3);
@@ -158,23 +164,28 @@ ClusterLhnData <- function(X, Y, ainit = NULL, numClusters=3, kalpha=10, thalpha
     F[[t]] = H + Eqll + lprAl;
     Timers <- TIMER_TOC("E_STEP", Timers);
 
+    args = c(list(history, !is.null(keepHistory), t, numIters), keepHistory);
+    history = do.call("HISTORY", args);
+
     ## Break out before updating if you're on the last iteration.
     ## To keep the parameters and results current.
-    if (t == numIters){
-      exitMode = "ITERS";
-      break;
-    }else if ((t %% checkToStopEvery)==0){
-      x = 1:numSlopePoints;
-      y0 = F[x];
-      mstart = lm(y0 ~ x);
-      y1 = F[t + ((-numSlopePoints+1):0)];
-      mend = lm(y1 ~ x);
-      ratio = abs(mstart$coefficients[2]/mend$coefficients[2]);
-      if (ratio > slopeRatioToStop){
-        exitMode= "SLOPE_RATIO";
-        if (verbose)
-          cat(sprintf("Breaking at t = %d due to SLOPE_RATIO %8.3f > %8.3f\n", t, ratio, slopeRatioToStop));
+    if (t>=minIters){
+      if (t == numIters){
+        exitMode = "ITERS";
         break;
+      }else if ((t %% checkToStopEvery)==0){
+        x = 1:numSlopePoints;
+        y0 = F[x];
+        mstart = lm(y0 ~ x);
+        y1 = F[t + ((-numSlopePoints+1):0)];
+        mend = lm(y1 ~ x);
+        ratio = abs(mstart$coefficients[2]/mend$coefficients[2]);
+        if (ratio > slopeRatioToStop){
+          exitMode= "SLOPE_RATIO";
+          if (verbose)
+            cat(sprintf("\nBreaking at t = %d due to SLOPE_RATIO %8.3f > %8.3f\n", t, ratio, slopeRatioToStop));
+          break;
+        }
       }
     }
 
@@ -184,15 +195,16 @@ ClusterLhnData <- function(X, Y, ainit = NULL, numClusters=3, kalpha=10, thalpha
     Z   = Y/L - 1;
     Zq  = Z*qtsnk;
     ZqV = Zq*(V>0);
+    alb = aperm(array(rep(al,T*S*K),dim=c(N,T,S,K)),c(2,3,1,4));
+    ZqVa = ZqV*alb;
 
     gradL0 =  apply(Zq,     3, FUN="sum");
-    gradAl =  apply(ZqV*V,  3, FUN="sum") + (kalpha - 1)/al - 1/thalpha; ## Add a prior on Al
+    gradAl =  apply(ZqV*V,  3, FUN="sum") + ((kalpha - 1)/al - 1/thalpha); ## Add a prior on Al
     gradV0 = -apply(ZqV,    3, FUN="sum")*al;
 
-    grada = apply(Zq*U1, c(2,4),FUN="sum");
-
+    grada = apply(ZqVa*U1, c(2,4),FUN="sum");
     G     = ComputeGtsnk(X,a);
-    gradr = apply(Zq*G, c(2,4),FUN="sum");
+    gradr = apply(ZqVa*G, c(2,4),FUN="sum");
     Timers <- TIMER_TOC("M_GRADIENTS", Timers);
 
     ## 2. Update the parameters
@@ -214,9 +226,16 @@ ClusterLhnData <- function(X, Y, ainit = NULL, numClusters=3, kalpha=10, thalpha
   ## Extract a clustering from the probabilities
   clust =  apply(qnk, 1, "which.max");
   pclust =  apply(qnk, 1, "max");
-  dclust = -diag(apply(LL[,,,clust],c(3,4),FUN="sum"));
+
+  if (length(clust)>1){
+      dclust = -diag(apply(LL[,,,clust],c(3,4),FUN="sum"));
+  }
+  else{
+      dclust = -sum(LL);
+  }
+
   Lclust = array(data=0, dim=c(T,S,N));
   for (i in 1:N)
       Lclust[,,i] = L[,,i,clust[[i]]];
-  results= list(a = a, al = al, v0 = v0, l0 = l0, qnk = qnk, F = F[1:t], L = L, Lclust = Lclust, clust=clust, pclust=pclust, dclust=dclust, numIters = t, seed = seed, exitMode = exitMode);
+  results= list(a = a, al = al, v0 = v0, l0 = l0, qnk = qnk, F = F[1:t], L = L, Lclust = Lclust, clust=clust, pclust=pclust, dclust=dclust, numIters = t, seed = seed, exitMode = exitMode, history = history);
 }
