@@ -62,9 +62,12 @@
 #'   hit the maximum number of iterations, "SLOPE_RATIO" if it exited early due
 #'   to the slope ratio.}
 #' @export
-ClusterLhnData <- function(X, Y, ainit = NULL, numClusters=3, kalpha=10, thalpha=3/20, tauv0 = 0.1, taua=1, taul0=0.5, minIters = 0, numIters=10000, dt=1e-5, seed=0, initMode="random", verbose=TRUE, timer="OFF", slopeRatioToStop=100, numSlopePoints=20, checkToStopEvery=100, keepHistory = NULL){
+ClusterLhnData <- function(Data, numClusters=3, kalpha=10, thalpha=3/20, tauv0 = 0.1, taua=1, taul0=0.5, minIters = 0, numIters=10000, dt=1e-5, seed=0, initMode="random", verbose=TRUE, timer="OFF", slopeRatioToStop=100, numSlopePoints=20, checkToStopEvery=100, keepHistory = NULL){
   set.seed(seed);
   Timers = TIMER_INIT(status=timer);
+
+  X = Data$X;
+  Y = Data$Y;
 
   ## If X and Y have data for just 1 cell, add a singleton dimension so the rest of the code doesn't complain.
   if (length(dim(X))==2) X = array(X,dim = c(dim(X),1));
@@ -89,9 +92,16 @@ ClusterLhnData <- function(X, Y, ainit = NULL, numClusters=3, kalpha=10, thalpha
   Y = array(rep(Y,K), dim=c(dim(Y), K));
   lfY= log(factorial(Y));
 
-  l0     = matrix(rexp(N,rate=1/taul0),        nrow=N);
-  v0     = matrix(rexp(N,rate=1/tauv0),        nrow=N);
-  al     = matrix(rgamma(N, shape=kalpha, scale=thalpha), nrow=N);
+  if (initMode=="single"){
+      l0     = matrix(apply(Y,MARGIN=3,FUN=mean),     nrow=N);
+      v0     = matrix(0, nrow=N, ncol = 1);
+      al     = matrix(1, nrow=N, ncol=1);
+  }else{
+       ainit  = Data$afit;
+       l0     = matrix(sapply(Data$Fits, FUN=function(x) x$l0), nrow=N, ncol=1);
+       v0     = matrix(sapply(Data$Fits, FUN=function(x) x$v0), nrow=N, ncol=1);
+       al     = matrix(sapply(Data$Fits, FUN=function(x) x$al), nrow=N, ncol=1);
+   }
   F      = matrix(NaN, nrow=numIters, ncol=1);
 
   ## Initialize the clusters
@@ -101,7 +111,7 @@ ClusterLhnData <- function(X, Y, ainit = NULL, numClusters=3, kalpha=10, thalpha
           stop("Number of clusters must equal 1 when fitting a single data point.");
       a[1,,] = 1;
       a[2,,] = 0.1;
-  }else if (initMode=="random" || is.null(ainit)){
+  }else if (initMode=="random"){
     a = array(runif(n = 2*K*S), dim=c(2,S,K));
   }else if (initMode=="kmeans"){
     isample = sample(N,size=S,replace=FALSE);
@@ -161,6 +171,7 @@ ClusterLhnData <- function(X, Y, ainit = NULL, numClusters=3, kalpha=10, thalpha
     H = -qnk*log(qnk); H = sum(H[!is.nan(H)]); # Entropy
     Eqll = sum(qtsnk * LL); # Expected log likelihood
     lprAl = sum((kalpha-1)*log(al) - al/thalpha); ## Prior on alpha
+
     F[[t]] = H + Eqll + lprAl;
     Timers <- TIMER_TOC("E_STEP", Timers);
 
@@ -173,7 +184,7 @@ ClusterLhnData <- function(X, Y, ainit = NULL, numClusters=3, kalpha=10, thalpha
       if (t == numIters){
         exitMode = "ITERS";
         break;
-      }else if ((t %% checkToStopEvery)==0){
+    }else if ((t %% checkToStopEvery)==0){
         x = 1:numSlopePoints;
         y0 = F[x];
         mstart = lm(y0 ~ x);
@@ -209,9 +220,11 @@ ClusterLhnData <- function(X, Y, ainit = NULL, numClusters=3, kalpha=10, thalpha
 
     ## 2. Update the parameters
     Timers <- TIMER_TIC("M_UPDATES", Timers);
-    l0 = l0 + SCALE_GRAD(gradL0)*dt; l0[l0<0] = 0;
-    al = al + SCALE_GRAD(gradAl)*dt; al[al<0] = 0;
-    v0 = v0 + SCALE_GRAD(gradV0)*dt;
+    l0 = l0 + SCALE_GRAD(gradL0)*dt; l0[l0<1e-6] = 1e-6;
+    if (initMode != "single"){
+        al = al + SCALE_GRAD(gradAl)*dt; al[al<0] = 0;
+        v0 = v0 + SCALE_GRAD(gradV0)*dt;
+    }
 
     aa = a[1,,] + SCALE_GRAD(grada)*dt; aa[aa<0] = 0; a[1,,] = aa;
     ar = a[2,,] + SCALE_GRAD(gradr)*dt; ar[ar<0] = 0; ar[ar>1] = 1; a[2,,] = ar;
