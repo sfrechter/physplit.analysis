@@ -1,11 +1,11 @@
+#' @export
 PrepareInputsForClusterLhnData <- function(whichCells, odorDurInMs = 250, numOdors = 36, binStart = 0, binEnd = 3, binSize = 0.1, odorWindow = c(0.5,0.75), maxShift = 10, doFits = TRUE, fitNumIters = 100000, fitMinIters = 1000, fitDt = 1e-3, fitSlopeRatioToStop = 800, fitNumSlopePoints = 100, plotFits = TRUE, verbose=TRUE){
 ############ PART 1 - GRAB THE DATA FROM PHYSPLITDATA
     if (!require(devtools))     install.packages("devtools");
     if (!require(physplitdata)) devtools::install_github("jefferislab/physplitdata",ref="ec3993315ac5d6c7ec0201a6dcba6a6a56636cb8");
     if (!require(gphys))        devtools::install_github("jefferislab/gphys");
     require(dplyr);
-    require(physplit.analysis);
-    
+
     dfSubset = subset(PhySplitDB, cell%in%whichCells);
     numCells = nrow(dfSubset);
 
@@ -156,7 +156,7 @@ PrepareInputsForClusterLhnData <- function(whichCells, odorDurInMs = 250, numOdo
             a   = matrix(res$a, nrow=2); ## Drop the singleton dimension.
             afit[,,i] = a;
             Fits[[i]] = list(a = a, al = res$al, v0 = res$v0,l0 =res$l0);
-            
+
             if (plotFits){
                 odorWindowFun = function (whichCell, indOdor, offset) {
                     iodor = which(dimnames(X)[[2]] == freqOdors[[indOdor]]);
@@ -165,7 +165,7 @@ PrepareInputsForClusterLhnData <- function(whichCells, odorDurInMs = 250, numOdo
                     lines(tt,ll,col=rgb(0,0,0),lwd=1);
                 }
                 fileName = sprintf("fitCell_%s", cells[[i]]);
-                
+
                 pdf(file=sprintf("%s.F.pdf",fileName), height=8, width=12);
                 par(mfrow=c(1,1), mar=c(4,4,1,1));
                 plot(res$F, type="l",xlab="iterations",ylab="objective");
