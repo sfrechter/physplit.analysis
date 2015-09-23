@@ -160,23 +160,28 @@ ClusterLhnData <- function(Data, numClusters=3, kalpha=10, thalpha=3/20, tauv0 =
 
     LL = -L + Y*log(L) - lfY;
     ## E-STEP: Compute the cluster responsibilites
-    Timers <- TIMER_TIC("E_STEP", Timers);
+    Timers <- TIMER_TIC("E_STEP_Q", Timers);
     lpnk = apply(LL, c(3,4), FUN="sum");
     lpnk = sweep(lpnk, 1, apply(lpnk,1,FUN="max"));
     qnk  = exp(lpnk);
     qnk  = sweep(qnk, 1, apply(qnk,1,FUN="sum"), FUN="/");
 
     qtsnk = aperm(array(rep(qnk,S*T),dim=c(N,K,T,S)), c(3,4,1,2));
+    Timers <- TIMER_TOC("E_STEP_Q", Timers);
+
     ## Compute the objective function
+    Timers <- TIMER_TIC("E_STEP_SCALARS", Timers);
     H = -qnk*log(qnk); H = sum(H[!is.nan(H)]); # Entropy
     Eqll = sum(qtsnk * LL); # Expected log likelihood
     lprAl = sum((kalpha-1)*log(al) - al/thalpha); ## Prior on alpha
 
     F[[t]] = H + Eqll + lprAl;
-    Timers <- TIMER_TOC("E_STEP", Timers);
+    Timers <- TIMER_TOC("E_STEP_SCALARS", Timers);
 
+    Timers <- TIMER_TIC("HISTORY", Timers);
     args = c(list(history, !is.null(keepHistory), t, numIters), keepHistory);
     history = do.call("HISTORY", args);
+    Timers <- TIMER_TOC("HISTORY", Timers);
 
     ## Break out before updating if you're on the last iteration.
     ## To keep the parameters and results current.
@@ -202,13 +207,15 @@ ClusterLhnData <- function(Data, numClusters=3, kalpha=10, thalpha=3/20, tauv0 =
 
     ## M-STEP: Update the parameters
     ## 1. Compute the gradients
-    Timers <- TIMER_TIC("M_GRADIENTS", Timers);
+    Timers <- TIMER_TIC("M_STEP_Z", Timers);
     Z   = Y/L - 1;
     Zq  = Z*qtsnk;
     ZqV = Zq*(V>0);
     alb = aperm(array(rep(al,T*S*K),dim=c(N,T,S,K)),c(2,3,1,4));
     ZqVa = ZqV*alb;
-
+    Timers <- TIMER_TOC("M_STEP_Z", Timers);
+    
+    Timers <- TIMER_TIC("M_STEP_GRADS", Timers);
     gradL0 =  apply(Zq,     3, FUN="sum");
     gradAl =  apply(ZqV*V,  3, FUN="sum") + ((kalpha - 1)/al - 1/thalpha); ## Add a prior on Al
     gradV0 = -apply(ZqV,    3, FUN="sum")*al;
@@ -216,10 +223,10 @@ ClusterLhnData <- function(Data, numClusters=3, kalpha=10, thalpha=3/20, tauv0 =
     grada = apply(ZqVa*U1, c(2,4),FUN="sum");
     G     = ComputeGtsnk(X,a);
     gradr = apply(ZqVa*G, c(2,4),FUN="sum");
-    Timers <- TIMER_TOC("M_GRADIENTS", Timers);
+    Timers <- TIMER_TOC("M_STEP_GRADS", Timers);
 
     ## 2. Update the parameters
-    Timers <- TIMER_TIC("M_UPDATES", Timers);
+    Timers <- TIMER_TIC("M_STEP_UPDATES", Timers);
     l0 = l0 + SCALE_GRAD(gradL0)*dt; l0[l0<1e-6] = 1e-6;
     if (initMode != "single"){
         al = al + SCALE_GRAD(gradAl)*dt; al[al<0] = 0;
@@ -228,7 +235,7 @@ ClusterLhnData <- function(Data, numClusters=3, kalpha=10, thalpha=3/20, tauv0 =
 
     aa = a[1,,] + SCALE_GRAD(grada)*dt; aa[aa<0] = 0; a[1,,] = aa;
     ar = a[2,,] + SCALE_GRAD(gradr)*dt; ar[ar<0] = 0; ar[ar>1] = 1; a[2,,] = ar;
-    Timers <- TIMER_TOC("M_UPDATES", Timers);
+    Timers <- TIMER_TOC("M_STEP_UPDATES", Timers);
 
     if (verbose) setTxtProgressBar(pb, t);
   }
