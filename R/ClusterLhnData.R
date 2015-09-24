@@ -165,12 +165,9 @@ ClusterLhnData <- function(Data, numClusters=3, kalpha=10, thalpha=3/20, tauv0 =
     LL = -L + Y*log(L) - lfY;
     ## E-STEP: Compute the cluster responsibilites
     Timers <- TIMER_TIC("E_STEP_Q", Timers);
-    lpnk = apply(LL, c(3,4), FUN="sum");
-    lpnk = sweep(lpnk, 1, apply(lpnk,1,FUN="max"));
-    qnk  = exp(lpnk);
-    qnk  = sweep(qnk, 1, apply(qnk,1,FUN="sum"), FUN="/");
-
-    qtsnk = aperm(array(rep(qnk,S*T),dim=c(N,K,T,S)), c(3,4,1,2));
+    Q     = ComputeQ(LL);
+    qnk   = Q$qnk;
+    qtsnk = Q$qtsnk;
     Timers <- TIMER_TOC("E_STEP_Q", Timers);
 
     ## Compute the objective function
@@ -217,8 +214,7 @@ ClusterLhnData <- function(Data, numClusters=3, kalpha=10, thalpha=3/20, tauv0 =
     ZqV = Zq*(V>0);
     if (is.null(ii3)){
         res = BroadcastMultiply(ZqV, al, 3, ii=ii3, ir=ir3);
-        ii3 = res$ii;
-        ir3 = res$ir;
+        ii3 = res$ii; ir3 = res$ir;
     }
     ZqVa = BroadcastMultiply(ZqV, al, 3, ii=ii3, ir=ir3)$Xy;   ## alb = aperm(array(rep(al,T*S*K),dim=c(N,T,S,K)),c(2,3,1,4));
     Timers <- TIMER_TOC("M_STEP_Z", Timers);
@@ -230,8 +226,7 @@ ClusterLhnData <- function(Data, numClusters=3, kalpha=10, thalpha=3/20, tauv0 =
 
     if (is.null(ii24)){
         res  = ApplySum(ZqVa*U1, c(2,4), ii=ii24, ir=ir24);
-        ii24 = res$ii;
-        ir24 = res$ir;
+        ii24 = res$ii; ir24 = res$ir;
     }
     
     grada = ApplySum(ZqVa*U1, c(2,4), ii=ii24, ir=ir24)$Y;        
