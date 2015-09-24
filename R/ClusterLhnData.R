@@ -216,13 +216,13 @@ ClusterLhnData <- function(Data, numClusters=3, kalpha=10, thalpha=3/20, tauv0 =
     Timers <- TIMER_TOC("M_STEP_Z", Timers);
     
     Timers <- TIMER_TIC("M_STEP_GRADS", Timers);
-    gradL0 =  apply(Zq,     3, FUN="sum");
-    gradAl =  apply(ZqV*V,  3, FUN="sum") + ((kalpha - 1)/al - 1/thalpha); ## Add a prior on Al
-    gradV0 = -apply(ZqV,    3, FUN="sum")*al;
+    gradL0 =  ApplySum(Zq,    3); 
+    gradAl =  ApplySum(ZqV*V, 3) + ((kalpha - 1)/al - 1/thalpha); ## Add a prior on Al.
+    gradV0 = -ApplySum(ZqV,   3)*al; 
 
-    grada = apply(ZqVa*U1, c(2,4),FUN="sum");
+    grada = ApplySum(ZqVa*U1, c(2,4));
     G     = ComputeGtsnk(X,a);
-    gradr = apply(ZqVa*G, c(2,4),FUN="sum");
+    gradr = ApplySum(ZqVa*G, c(2,4)); 
     Timers <- TIMER_TOC("M_STEP_GRADS", Timers);
 
     ## 2. Update the parameters
