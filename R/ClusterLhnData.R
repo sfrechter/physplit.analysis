@@ -147,6 +147,10 @@ ClusterLhnData <- function(Data, numClusters=3, kalpha=10, thalpha=3/20, tauv0 =
   ## Initialize the history object
   history = NULL;
 
+  ## Indices for marginalizing out all dims but the third.
+  ii3 = NULL; ir3 = NULL;
+  ii24= NULL; ir24= NULL;
+  
   ## Begin the iterations
   if (verbose) pb = txtProgressBar(min=1,max=numIters,initial=1,style=3);
   Timers <- TIMER_TIC("ALL_ITERS", Timers);
@@ -216,13 +220,24 @@ ClusterLhnData <- function(Data, numClusters=3, kalpha=10, thalpha=3/20, tauv0 =
     Timers <- TIMER_TOC("M_STEP_Z", Timers);
     
     Timers <- TIMER_TIC("M_STEP_GRADS", Timers);
-    gradL0 =  ApplySum(Zq,    3); 
-    gradAl =  ApplySum(ZqV*V, 3) + ((kalpha - 1)/al - 1/thalpha); ## Add a prior on Al.
-    gradV0 = -ApplySum(ZqV,   3)*al; 
+    if (is.null(ii3)){
+        res = ApplySum(Zq,    3, ii=ii3, ir=ir3);
+        ii3 = res$ii;
+        ir3 = res$ir;
+    }
+    gradL0 =  ApplySum(Zq,    3, ii=ii3, ir=ir3)$Y; 
+    gradAl =  ApplySum(ZqV*V, 3, ii=ii3, ir=ir3)$Y + ((kalpha - 1)/al - 1/thalpha); ## Add a prior on Al.
+    gradV0 = -ApplySum(ZqV,   3, ii=ii3, ir=ir3)$Y*al; 
 
-    grada = ApplySum(ZqVa*U1, c(2,4));
+    if (is.null(ii24)){
+        res  = ApplySum(ZqVa*U1, c(2,4), ii=ii24, ir=ir24);
+        ii24 = res$ii;
+        ir24 = res$ir;
+    }
+    
+    grada = ApplySum(ZqVa*U1, c(2,4), ii=ii24, ir=ir24)$Y;        
     G     = ComputeGtsnk(X,a);
-    gradr = ApplySum(ZqVa*G, c(2,4)); 
+    gradr = ApplySum(ZqVa*G,  c(2,4), ii=ii24, ir=ir24)$Y; 
     Timers <- TIMER_TOC("M_STEP_GRADS", Timers);
 
     ## 2. Update the parameters

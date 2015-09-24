@@ -21,7 +21,7 @@ int ComputeGlobalIndexFromLocal(int il, int n, int *dl, int *dg){
   return ig;
 }
 
-void ApplySum(double *X, int *dims, int *pndims,  int *margins, int *pnmargins, double *Y){
+void ApplySum(double *X, int *dims, int *pndims,  int *margins, int *pnmargins, double *Y, int *computeInds, int *ii, int *pni, int *ir, int *pnr){
   // Computes the sum of the elements of X over all non-margin dimensions.
   //
   // Algorithm:
@@ -67,61 +67,68 @@ void ApplySum(double *X, int *dims, int *pndims,  int *margins, int *pnmargins, 
   // two sets of numbers: (1, #I1, #I1 #I2, ...) to compute the first
   // mapping, and (#(...I1), #(...I2),...) to compute the second.
   int i, j, nrdims, ni, nr, ji, jr, ndims = *pndims, nmargins = *pnmargins;
-  int *dg, *di, *dli, *dgi, *dr, *dlr, *dgr, *ii, *ir, *imargin;
+  int *dg, *di, *dli, *dgi, *dr, *dlr, *dgr, *imargin;
 
-  nrdims = ndims - nmargins;
-  dg  = (int *)R_alloc(ndims,    sizeof(int)); // The global coefficients overall (1, #(1), #(1)#(2), ...)
+  if (*computeInds>0){
+    nrdims = ndims - nmargins;
+    dg  = (int *)R_alloc(ndims,    sizeof(int)); // The global coefficients overall (1, #(1), #(1)#(2), ...)
 
-  di  = (int *)R_alloc(nmargins, sizeof(int)); // The dimensions of the margins:    (#I1, #I2, ...)
-  dli = (int *)R_alloc(nmargins, sizeof(int)); // The local coefs for the margins: (1, #I1, #I1 #I2, ...)
-  dgi = (int *)R_alloc(nmargins, sizeof(int)); // The global coefs for the margins: (#(...I1), #(...I2), ...)
+    di  = (int *)R_alloc(nmargins, sizeof(int)); // The dimensions of the margins:    (#I1, #I2, ...)
+    dli = (int *)R_alloc(nmargins, sizeof(int)); // The local coefs for the margins: (1, #I1, #I1 #I2, ...)
+    dgi = (int *)R_alloc(nmargins, sizeof(int)); // The global coefs for the margins: (#(...I1), #(...I2), ...)
 
-  dr  = (int *)R_alloc(nrdims, sizeof(int)); // The dimensions of the remaining:    (#R1, #R2, ...)
-  dlr = (int *)R_alloc(nrdims, sizeof(int)); // The local coefs for the remaining:  (1, #R1, #R1 #R2, ...)
-  dgr = (int *)R_alloc(nrdims, sizeof(int)); // The global coefs for the remaining: (#(...R1), #(...R2), ...)
+    dr  = (int *)R_alloc(nrdims, sizeof(int)); // The dimensions of the remaining:    (#R1, #R2, ...)
+    dlr = (int *)R_alloc(nrdims, sizeof(int)); // The local coefs for the remaining:  (1, #R1, #R1 #R2, ...)
+    dgr = (int *)R_alloc(nrdims, sizeof(int)); // The global coefs for the remaining: (#(...R1), #(...R2), ...)
 
-  // Margin indicator
-  imargin = (int *)R_alloc(ndims, sizeof(int));
-  for (i = 0; i<ndims; i++)    imargin[i] = 0;
-  for (i = 0; i<nmargins; i++) imargin[margins[i]] = 1;
+    // Margin indicator
+    imargin = (int *)R_alloc(ndims, sizeof(int));
+    for (i = 0; i<ndims; i++)    imargin[i] = 0;
+    for (i = 0; i<nmargins; i++) imargin[margins[i]] = 1;
 
-  dg[0] = 1;
-  for (i = 1; i<ndims; i++) dg[i] = dg[i-1]*dims[i-1];
+    dg[0] = 1;
+    for (i = 1; i<ndims; i++) dg[i] = dg[i-1]*dims[i-1];
 
-  ji = 0; jr = 0;
-  ni = 1; nr = 1;
-  for (i = 0; i<ndims; i++)
-    if (imargin[i]){
-      di[ji]     = dims[i];
-      ni        *= dims[i];
-      dgi[ji]    = dg[i];
-      ji++;
-    }
-    else{
-      dr[jr]     = dims[i];
-      nr        *= dims[i];
-      dgr[jr]    = dg[i];
-      jr++;
-    }
+    ji = 0; jr = 0;
+    ni = 1; nr = 1;
+    for (i = 0; i<ndims; i++)
+      if (imargin[i]){
+	di[ji]     = dims[i];
+	ni        *= dims[i];
+	dgi[ji]    = dg[i];
+	ji++;
+      }
+      else{
+	dr[jr]     = dims[i];
+	nr        *= dims[i];
+	dgr[jr]    = dg[i];
+	jr++;
+      }
   
-  dli[0] = 1;
-  for (i=1; i<nmargins; i++)
-    dli[i] = dli[i-1]*di[i-1];
+    dli[0] = 1;
+    for (i=1; i<nmargins; i++)
+      dli[i] = dli[i-1]*di[i-1];
   
-  dlr[0] = 1;
-  for (i=1; i<nrdims; i++)
-    dlr[i] = dlr[i-1]*dr[i-1];
+    dlr[0] = 1;
+    for (i=1; i<nrdims; i++)
+      dlr[i] = dlr[i-1]*dr[i-1];
   
-  // Precompute the OFFSETS
-  ii = (int *)R_alloc(ni, sizeof(int));
-  for (i = 0; i<ni; i++)
-    ii[i] = ComputeGlobalIndexFromLocal(i, nmargins, dli, dgi);
+    // Precompute the OFFSETS
+    for (i = 0; i<ni; i++)
+      ii[i] = ComputeGlobalIndexFromLocal(i, nmargins, dli, dgi);
   
-  // Precompute the INDICES
-  ir = (int *)R_alloc(nr, sizeof(int));
-  for (i = 0; i<nr; i++)
-    ir[i] = ComputeGlobalIndexFromLocal(i, nrdims, dlr, dgr);
+    // Precompute the INDICES
+    for (i = 0; i<nr; i++)
+      ir[i] = ComputeGlobalIndexFromLocal(i, nrdims, dlr, dgr);
 
+    *pni = ni;
+    *pnr = nr;
+  }
+  else{
+    ni = *pni;
+    nr = *pnr;
+  }
+    
   // Actually perform the sum
   for (i = 0; i<ni; i++){
     Y[i] = 0;
