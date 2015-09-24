@@ -16,10 +16,10 @@ ComputeLambda <- function(X,a,al,v0,l0){
         as.double(vector("double", prod(d))),
         PACKAGE = "physplit.analysis");
 
-    U  = aperm(array(results[[7]], dim=c(T,S,K,N)),c(1,2,4,3));
-    U1 = aperm(array(results[[8]], dim=c(T,S,K,N)),c(1,2,4,3));
-    V  = aperm(array(results[[9]], dim=c(T,S,K,N)),c(1,2,4,3));
-    L  = aperm(array(results[[10]],dim=c(T,S,K,N)),c(1,2,4,3));
+    U  = array(results[[7]],  dim=d);
+    U1 = array(results[[8]],  dim=d);
+    V  = array(results[[9]],  dim=d);
+    L  = array(results[[10]], dim=d);
 
     list(U = U, U1 = U1, V = V, L = L);
 }
