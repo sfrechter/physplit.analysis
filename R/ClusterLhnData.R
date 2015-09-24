@@ -215,16 +215,15 @@ ClusterLhnData <- function(Data, numClusters=3, kalpha=10, thalpha=3/20, tauv0 =
     Z   = Y/L - 1;
     Zq  = Z*qtsnk;
     ZqV = Zq*(V>0);
-    alb = aperm(array(rep(al,T*S*K),dim=c(N,T,S,K)),c(2,3,1,4));
-    ZqVa = ZqV*alb;
-    Timers <- TIMER_TOC("M_STEP_Z", Timers);
-    
-    Timers <- TIMER_TIC("M_STEP_GRADS", Timers);
     if (is.null(ii3)){
-        res = ApplySum(Zq,    3, ii=ii3, ir=ir3);
+        res = BroadcastMultiply(ZqV, al, 3, ii=ii3, ir=ir3);
         ii3 = res$ii;
         ir3 = res$ir;
     }
+    ZqVa = BroadcastMultiply(ZqV, al, 3, ii=ii3, ir=ir3)$Xy;   ## alb = aperm(array(rep(al,T*S*K),dim=c(N,T,S,K)),c(2,3,1,4));
+    Timers <- TIMER_TOC("M_STEP_Z", Timers);
+    
+    Timers <- TIMER_TIC("M_STEP_GRADS", Timers);
     gradL0 =  ApplySum(Zq,    3, ii=ii3, ir=ir3)$Y; 
     gradAl =  ApplySum(ZqV*V, 3, ii=ii3, ir=ir3)$Y + ((kalpha - 1)/al - 1/thalpha); ## Add a prior on Al.
     gradV0 = -ApplySum(ZqV,   3, ii=ii3, ir=ir3)$Y*al; 
