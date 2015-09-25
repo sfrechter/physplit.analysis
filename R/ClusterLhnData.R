@@ -154,6 +154,7 @@ ClusterLhnData <- function(Data, numClusters=3, kalpha=10, thalpha=3/20, tauv0 =
     ## Begin the iterations
     if (verbose) pb = txtProgressBar(min=1,max=numIters,initial=1,style=3);
     Timers <- TIMER_TIC("ALL_ITERS", Timers);
+    startTime = proc.time();
     for (t in 1:numIters){
         Timers <- TIMER_TIC("COMPUTE_LAMBDA", Timers);
         Drive = ComputeLambda(X,a,al,v0,l0);
@@ -247,10 +248,14 @@ ClusterLhnData <- function(Data, numClusters=3, kalpha=10, thalpha=3/20, tauv0 =
 
         if (verbose) setTxtProgressBar(pb, t);
     }
+    endTime <- proc.time();
     Timers <- TIMER_TOC("ALL_ITERS", Timers);
     TIMER_SUMMARY(Timers);
     if (verbose) close(pb);
 
+    elapsedTime = endTime[[3]] - startTime[[3]];
+    cat(sprintf("Completed %d iterations in %1.1f seconds\n%1.3f seconds / iteration\n%1.3e seconds / TSNK / iteration.\n", t, elapsedTime, elapsedTime/t, elapsedTime/t/T/S/N/K));
+    
     ## Extract a clustering from the probabilities
     clust  =  apply(qnk, 1, "which.max");
     pclust =  apply(qnk, 1, "max");
