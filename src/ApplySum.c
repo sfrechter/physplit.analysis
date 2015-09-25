@@ -111,8 +111,9 @@ void ApplySum(double *X, int *dims, int *pndims,  int *margins, int *pnmargins, 
     
   // Actually perform the sum
   for (i = 0; i<ni; i++){
-    Y[i] = 0;
+    *Y = 0;
     for (j = 0; j<nr; j++)
-      Y[i] += X[ii[i] + ir[j]];    
+      *Y += X[ii[i] + ir[j]];
+    Y++;
   }
 }
