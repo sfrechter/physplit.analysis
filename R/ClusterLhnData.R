@@ -114,7 +114,7 @@ ClusterLhnData <- function(Data, numClusters=3, kalpha=10, thalpha=3/20, tauv0 =
     }else if (initMode=="random"){
          a = array(runif(n = 2*K*S), dim=c(2,S,K));
      }else if (initMode=="kmeans"){
-          isample = sample(N,size=S,replace=FALSE);
+          isample = sample(N,size=K,replace=FALSE);
           a      = ainit[,,isample];
       }else if (initMode =="kmeans++"){
            ## Pick the first cluster center at random from the data
