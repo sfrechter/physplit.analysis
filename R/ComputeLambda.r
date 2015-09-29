@@ -1,3 +1,4 @@
+#' @export
 ComputeLambda <- function(X,a,al,v0,l0){
     ## X is in tsn format.
     ## a is in 2sk format.

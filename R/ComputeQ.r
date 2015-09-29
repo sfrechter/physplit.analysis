@@ -1,3 +1,4 @@
+#' @export
 ComputeQ <- function(LL){
     ## L is in tsnk format.
     T = dim(LL)[[1]];
