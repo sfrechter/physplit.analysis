@@ -62,8 +62,7 @@
 #'   hit the maximum number of iterations, "SLOPE_RATIO" if it exited early due
 #'   to the slope ratio.}
 #' @export
-ClusterLhnData <- function(Data, numClusters=3, kalpha=10, thalpha=3/20, tauv0 = 0.1, taua=1, taul0=0.5, minIters = 0, numIters=10000, dt=1e-5, seed=0, initMode="random", verbose=TRUE, timer="OFF", slopeRatioToStop=100, numSlopePoints=20, checkToStopEvery=100, keepHistory = NULL){
-    set.seed(seed);
+ClusterLhnData <- function(Data, numClusters=3, kalpha=10, thalpha=3/20, tauv0 = 0.1, taua=1, taul0=0.5, minIters = 0, numIters=10000, dt=1e-5, seed=0, initMode="random", verbose=TRUE, timer="OFF", slopeRatioToStop=100, numSlopePoints=20, checkToStopEvery=100, keepHistory = NULL, keepHistoryAt = NULL){
     Timers = TIMER_INIT(status=timer);
 
     X = Data$X;
@@ -81,6 +80,14 @@ ClusterLhnData <- function(Data, numClusters=3, kalpha=10, thalpha=3/20, tauv0 =
     if (K>N)
         stop(sprintf("Number of clusters %d is greater than number of data points %d.", K, N));
 
+    if (length(seed)==1){
+        set.seed(seed);
+    }else if (length(seed) == N){
+         initMode = "fixed";         
+     }else{
+          stop("Seed must either be an integer or a vector with NUM_CELLS elements.");
+      }
+    
     SCALE_GRAD <- function(g){
         ng = sqrt(sum(g^2));
         return(g/max(1,ng));
@@ -111,11 +118,23 @@ ClusterLhnData <- function(Data, numClusters=3, kalpha=10, thalpha=3/20, tauv0 =
             stop("Number of clusters must equal 1 when fitting a single data point.");
         a[1,,] = 1;
         a[2,,] = 0.1;
-    }else if (initMode=="random"){
+    }else if (initMode=="fixed"){
+         cat(sprintf("initMode = specifed.\n"));
+         a[1,,] = 1;
+         a[2,,] = 0.1;
+         qnk = matrix(0, nrow = N, ncol = K);
+         qtsnk = array(0, dim = c(T,S,N,K));
+         for (i in 1:N){
+             for (j in 1:K){
+                 qnk[[i,j]]   = as.double(seed[[i]] == j);
+                 qtsnk[,,i,j] = as.double(seed[[i]] == j);
+             }
+         }                        
+     }else if (initMode=="random"){
          a = array(runif(n = 2*K*S), dim=c(2,S,K));
      }else if (initMode=="kmeans"){
           isample = sample(N,size=K,replace=FALSE);
-          a      = ainit[,,isample];
+          a = ainit[,,isample];
       }else if (initMode =="kmeans++"){
            ## Pick the first cluster center at random from the data
            iclust = sample(N,1);
@@ -166,9 +185,11 @@ ClusterLhnData <- function(Data, numClusters=3, kalpha=10, thalpha=3/20, tauv0 =
         LL = -L + Y*log(L) - lfY;
         ## E-STEP: Compute the cluster responsibilites
         Timers <- TIMER_TIC("E_STEP_Q", Timers);
-        Q     = ComputeQ(LL);
-        qnk   = Q$qnk;
-        qtsnk = Q$qtsnk;
+        if (initMode != "fixed"){
+            Q     = ComputeQ(LL);
+            qnk   = Q$qnk;
+            qtsnk = Q$qtsnk;
+        }
         Timers <- TIMER_TOC("E_STEP_Q", Timers);
 
         ## Compute the objective function
@@ -180,7 +201,7 @@ ClusterLhnData <- function(Data, numClusters=3, kalpha=10, thalpha=3/20, tauv0 =
         Timers <- TIMER_TOC("E_STEP_SCALARS", Timers);
 
         Timers <- TIMER_TIC("HISTORY", Timers);
-        args    = c(list(history, !is.null(keepHistory), t, numIters), keepHistory);
+        args    = c(list(history, !is.null(keepHistory), t, numIters, at=keepHistoryAt), keepHistory);
         history = do.call("HISTORY", args);
         Timers <- TIMER_TOC("HISTORY", Timers);
 
