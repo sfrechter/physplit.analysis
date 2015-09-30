@@ -139,7 +139,9 @@ ClusterLhnData <- function(Data, numClusters=3, kalpha=10, thalpha=3/20, tauv0 =
           minFitIters=1000;
           numFitIters=10000;
           dtFit = 1e-2;
-          res = FitCellSpecificParameters(Data$X[,,ifit], Data$Y[,,ifit], a, kalpha=kalpha, thalpha=thalpha, sdv0 = tauv0, taua=taua, taul0=taul0, minIters = minFitIters, numIters=numFitIters, dt=dtFit, seed = seed, verbose=TRUE, timer="OFF", slopeRatioToStop=500, numSlopePoints=20, checkToStopEvery=100, keepHistory = NULL, keepHistoryAt = NULL);
+          if (verbose)
+              cat("Finding parameters for non-cluster-center cells...\n");
+          res = FitCellSpecificParameters(Data$X[,,ifit], Data$Y[,,ifit], a, kalpha=kalpha, thalpha=thalpha, sdv0 = tauv0, taua=taua, taul0=taul0, minIters = minFitIters, numIters=numFitIters, dt=dtFit, seed = seed, verbose=verbose, timer="OFF", slopeRatioToStop=500, numSlopePoints=20, checkToStopEvery=100, keepHistory = NULL, keepHistoryAt = NULL);
           l0[ifit] = res$l0.best;
           al[ifit] = res$al.best;
           v0[ifit] = res$v0.best;
