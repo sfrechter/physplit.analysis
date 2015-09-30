@@ -1,7 +1,8 @@
+#' @export
 HISTORY <- function(history, keepHistory, iter, numIters, at=NULL, ...){
     if (keepHistory){
         if (is.null(at))
-            at = 1:numIters;       
+            at = 1:numIters;
         fields = list(...);
         values = lapply(fields, FUN=function(x) eval.parent(as.symbol(x),n=3));
 

@@ -1,6 +1,9 @@
+#' @export
 TIMER_INIT <- function(status="ON"){
     return(list(status=status));
 }
+
+#' @export
 TIMER_TIC <- function(whichTimer, T){
     if (T$status=="OFF")
         return(T);
@@ -15,6 +18,7 @@ TIMER_TIC <- function(whichTimer, T){
     return(T);
 }
 
+#' @export
 TIMER_TOC <- function(whichTimer, T){
     if (T$status=="OFF")
         return(T);
@@ -25,12 +29,13 @@ TIMER_TOC <- function(whichTimer, T){
     return(T);
 }
 
+#' @export
 TIMER_SUMMARY <- function(T){
     if (T$status == "OFF")
         return(NULL);
     fields = names(T);
     cat("Timer summary:\n");
-        
+
     for (f in fields){
         if (f=="status")
             next;
