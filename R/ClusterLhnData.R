@@ -135,6 +135,15 @@ ClusterLhnData <- function(Data, numClusters=3, kalpha=10, thalpha=3/20, tauv0 =
      }else if (initMode=="kmeans"){
           isample = sample(N,size=K,replace=FALSE);
           a = ainit[,,isample];
+          ifit = setdiff(1:N, isample);
+          minFitIters=1000;
+          numFitIters=10000;
+          dtFit = 1e-2;
+          res = FitCellSpecificParameters(Data$X[,,ifit], Data$Y[,,ifit], a, kalpha=kalpha, thalpha=thalpha, sdv0 = tauv0, taua=taua, taul0=taul0, minIters = minFitIters, numIters=numFitIters, dt=dtFit, seed = seed, verbose=TRUE, timer="OFF", slopeRatioToStop=500, numSlopePoints=20, checkToStopEvery=100, keepHistory = NULL, keepHistoryAt = NULL);
+          l0[ifit] = res$l0.best;
+          al[ifit] = res$al.best;
+          v0[ifit] = res$v0.best;
+
       }else if (initMode =="kmeans++"){
            ## Pick the first cluster center at random from the data
            iclust = sample(N,1);
