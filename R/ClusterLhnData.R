@@ -62,7 +62,7 @@
 #'   hit the maximum number of iterations, "SLOPE_RATIO" if it exited early due
 #'   to the slope ratio.}
 #' @export
-ClusterLhnData <- function(Data, numClusters=3, kalpha=10, thalpha=3/20, tauv0 = 0.1, taua=1, taul0=0.5, minIters = 0, numIters=10000, dt=1e-5, seed=0, initMode="random", verbose=TRUE, timer="OFF", slopeRatioToStop=100, numSlopePoints=20, checkToStopEvery=100, keepHistory = NULL, keepHistoryAt = NULL){
+ClusterLhnData <- function(Data, numClusters=3, kalpha=10, thalpha=3/20, tauv0 = 0.1, taua=1, taul0=0.5, minIters = 0, numIters=10000, dt=1e-5, seed=0, initMode="random", iclust = NULL,verbose=TRUE, timer="OFF", slopeRatioToStop=100, numSlopePoints=20, checkToStopEvery=100, keepHistory = NULL, keepHistoryAt = NULL, doPrefit = TRUE){
     Timers = TIMER_INIT(status=timer);
 
     X = Data$X;
@@ -133,19 +133,25 @@ ClusterLhnData <- function(Data, numClusters=3, kalpha=10, thalpha=3/20, tauv0 =
      }else if (initMode=="random"){
          a = array(runif(n = 2*K*S), dim=c(2,S,K));
      }else if (initMode=="kmeans"){
-          isample = sample(N,size=K,replace=FALSE);
+          if (is.null(iclust)){
+              isample = sample(N,size=K,replace=FALSE);
+          }else{
+               isample = iclust;
+           }
           a = ainit[,,isample];
-          ifit = setdiff(1:N, isample);
-          minFitIters=1000;
-          numFitIters=10000;
-          dtFit = 1e-2;
-          if (verbose)
-              cat("Finding parameters for non-cluster-center cells...\n");
-          res = FitCellSpecificParameters(Data$X[,,ifit], Data$Y[,,ifit], a, kalpha=kalpha, thalpha=thalpha, sdv0 = tauv0, taua=taua, taul0=taul0, minIters = minFitIters, numIters=numFitIters, dt=dtFit, seed = seed, verbose=verbose, timer="OFF", slopeRatioToStop=500, numSlopePoints=20, checkToStopEvery=100, keepHistory = NULL, keepHistoryAt = NULL);
-          l0[ifit] = res$l0.best;
-          al[ifit] = res$al.best;
-          v0[ifit] = res$v0.best;
 
+          if (doPrefit){
+              ifit = setdiff(1:N, isample);
+              minFitIters=1000;
+              numFitIters=10000;
+              dtFit = 1e-2;
+              if (verbose)
+                  cat("Finding parameters for non-cluster-center cells...\n");
+              res = FitCellSpecificParameters(Data$X[,,ifit], Data$Y[,,ifit], a, kalpha=kalpha, thalpha=thalpha, sdv0 = tauv0, taua=taua, taul0=taul0, minIters = minFitIters, numIters=numFitIters, dt=dtFit, seed = seed, verbose=verbose, timer="OFF", slopeRatioToStop=500, numSlopePoints=20, checkToStopEvery=100, keepHistory = NULL, keepHistoryAt = NULL);
+              l0[ifit] = res$l0.best;
+              al[ifit] = res$al.best;
+              v0[ifit] = res$v0.best;
+          }
       }else if (initMode =="kmeans++"){
            ## Pick the first cluster center at random from the data
            iclust = sample(N,1);
