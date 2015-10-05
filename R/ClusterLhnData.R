@@ -62,7 +62,7 @@
 #'   hit the maximum number of iterations, "SLOPE_RATIO" if it exited early due
 #'   to the slope ratio.}
 #' @export
-ClusterLhnData <- function(Data, numClusters=3, kalpha=10, thalpha=3/20, tauv0 = 0.1, taua=1, taul0=0.5, minIters = 0, numIters=10000, dt=1e-5, seed=0, initMode="random", iclust = NULL,verbose=TRUE, timer="OFF", slopeRatioToStop=100, numSlopePoints=20, checkToStopEvery=100, keepHistory = NULL, keepHistoryAt = NULL, doPrefit = TRUE){
+ClusterLhnData <- function(Data, numClusters=3, kalpha=10, thalpha=3/20, tauv0 = 0.1, taua=1, taul0=0.5, minIters = 0, numIters=10000, dt=1e-5, seed=0, initMode="random", iclust = NULL,verbose=TRUE, timer="OFF", slopeRatioToStop=100, numSlopePoints=20, checkToStopEvery=100, keepHistory = NULL, keepHistoryAt = NULL, doPrefit = TRUE, maxPreFitIters = 1){
     Timers = TIMER_INIT(status=timer);
 
     X = Data$X;
@@ -97,7 +97,7 @@ ClusterLhnData <- function(Data, numClusters=3, kalpha=10, thalpha=3/20, tauv0 =
     DFUN  <- function(A1,A2) sum(sapply(1:K, function(i) DFUN1(A1[,i],A2[,i])));
 
     Y = array(rep(Y,K), dim=c(dim(Y), K));
-    lfY= log(factorial(Y));
+    # lfY= log(factorial(Y));
 
     if (initMode=="single"){
         l0     = matrix(apply(Y,MARGIN=3,FUN=mean),     nrow=N);
@@ -111,6 +111,7 @@ ClusterLhnData <- function(Data, numClusters=3, kalpha=10, thalpha=3/20, tauv0 =
      }
     F      = matrix(NaN, nrow=numIters, ncol=1);
 
+    misc = NULL; ## List to contain miscellaneous information.
     ## Initialize the clusters
     a = array(0,c(2,S,K));
     if (initMode=="single"){
@@ -139,15 +140,49 @@ ClusterLhnData <- function(Data, numClusters=3, kalpha=10, thalpha=3/20, tauv0 =
                isample = iclust;
            }
           a = ainit[,,isample];
-
+          misc$iclust = isample;          
           if (doPrefit){
               ifit = setdiff(1:N, isample);
               minFitIters=1000;
               numFitIters=10000;
-              dtFit = 1e-2;
+              dtFit = 1e-2;              
               if (verbose)
                   cat("Finding parameters for non-cluster-center cells...\n");
-              res = FitCellSpecificParameters(Data$X[,,ifit], Data$Y[,,ifit], a, kalpha=kalpha, thalpha=thalpha, sdv0 = tauv0, taua=taua, taul0=taul0, minIters = minFitIters, numIters=numFitIters, dt=dtFit, seed = seed, verbose=verbose, timer="OFF", slopeRatioToStop=500, numSlopePoints=20, checkToStopEvery=100, keepHistory = NULL, keepHistoryAt = NULL);
+              l0f = NULL;
+              alf = NULL;
+              v0f = NULL;
+              Fbest = NULL;
+              converged = FALSE;
+              fitIters = 1;
+              while (!converged && fitIters <= maxPreFitIters){
+                  if (verbose)
+                      cat(sprintf("Fit iteration %d\n", fitIters));
+                  res = FitCellSpecificParameters(Data$X[,,ifit], Data$Y[,,ifit], a, l0 = l0f, al = alf, v0 = v0f, kalpha=kalpha, thalpha=thalpha, sdv0 = tauv0, taua=taua, taul0=taul0, minIters = minFitIters, numIters=numFitIters, dt=dtFit, seed = seed, verbose=verbose, timer="OFF", slopeRatioToStop=500, numSlopePoints=20, checkToStopEvery=100, keepHistory = NULL, keepHistoryAt = NULL);
+                  if (!is.null(Fbest)){
+                      improved = which((res$Fbest - Fbest)/abs(Fbest)>0.001);
+                      if (length(improved)>0){
+                          Fbest[improved] = res$Fbest[improved];
+                          if (verbose){
+                              cat(sprintf("%d cells improved.\n", length(improved)));
+                              print(improved);
+                          }
+                          l0f[improved,]=res$l0.best[improved];
+                          v0f[improved,]=res$v0.best[improved];
+                          alf[improved,]=res$al.best[improved];                          
+                      }else{
+                           converged = TRUE;                           
+                       }
+                  }else{
+                       Fbest = res$Fbest;
+                       l0f = matrix(res$l0.best, nrow = N - K, ncol = K);
+                       v0f = matrix(res$v0.best, nrow = N - K, ncol = K);
+                       alf = matrix(res$al.best, nrow = N - K, ncol = K);                       
+                   }
+                          
+                  fitIters = fitIters + 1;
+              }
+              misc$ifit  = ifit;
+              misc$res = res;
               l0[ifit] = res$l0.best;
               al[ifit] = res$al.best;
               v0[ifit] = res$v0.best;
@@ -186,9 +221,11 @@ ClusterLhnData <- function(Data, numClusters=3, kalpha=10, thalpha=3/20, tauv0 =
     ## Indices for marginalizing out all dims but the third.
     ii3 = NULL; ir3 = NULL;
     ii24= NULL; ir24= NULL;
-    
+
+    ## Initialize the clustering
+    clust = matrix(NA,nrow=N,ncol=1);
     ## Begin the iterations
-    if (verbose) pb = txtProgressBar(min=1,max=numIters,initial=1,style=3);
+    if (verbose) pb = txtProgressBar(min=0,max=numIters,initial=1,style=3);
     Timers <- TIMER_TIC("ALL_ITERS", Timers);
     startTime = proc.time();
     for (t in 1:numIters){
@@ -199,7 +236,7 @@ ClusterLhnData <- function(Data, numClusters=3, kalpha=10, thalpha=3/20, tauv0 =
         U1= Drive$U1;
         V = Drive$V;
         Timers <- TIMER_TOC("COMPUTE_LAMBDA", Timers);
-        LL = -L + Y*log(L) - lfY;
+        LL = -L + Y*log(L);
         ## E-STEP: Compute the cluster responsibilites
         Timers <- TIMER_TIC("E_STEP_Q", Timers);
         if (initMode != "fixed"){
@@ -208,6 +245,9 @@ ClusterLhnData <- function(Data, numClusters=3, kalpha=10, thalpha=3/20, tauv0 =
             qtsnk = Q$qtsnk;
         }
         Timers <- TIMER_TOC("E_STEP_Q", Timers);
+
+        ## Compute a clustering
+        clust[,1]  =  apply(qnk, 1, "which.max");
 
         ## Compute the objective function
         Timers <- TIMER_TIC("E_STEP_SCALARS", Timers);
@@ -308,5 +348,5 @@ ClusterLhnData <- function(Data, numClusters=3, kalpha=10, thalpha=3/20, tauv0 =
     Lclust = array(data=0, dim=c(T,S,N));
     for (i in 1:N)
         Lclust[,,i] = L[,,i,clust[[i]]];
-    results= list(a = a, al = al, v0 = v0, l0 = l0, qnk = qnk, F = F[1:t], L = L, Lclust = Lclust, clust=clust, pclust=pclust, dclust=dclust, numIters = t, seed = seed, exitMode = exitMode, history = history);
+    results= list(a = a, al = al, v0 = v0, l0 = l0, qnk = qnk, F = F[1:t], L = L, Lclust = Lclust, clust=clust, pclust=pclust, dclust=dclust, numIters = t, seed = seed, exitMode = exitMode, history = history, misc = misc);
 }
