@@ -2,6 +2,7 @@
 
 void ComputeLambda(double *X, double *a, int *dim,
 		   double *alpha, double *v0, double *l0,
+		   int *clusterSpecificParams,
 		   double *U, double *U1, double *V, double *L){
   // X is in tsn format
   // a is in 2sk format
@@ -39,5 +40,11 @@ void ComputeLambda(double *X, double *a, int *dim,
     v0    -= N;
     l0    -= N;
     a     += 2*S;
+
+    if (*clusterSpecificParams){
+      v0 += N;
+      l0 += N;
+      alpha += N;
+    }
   }
 }
