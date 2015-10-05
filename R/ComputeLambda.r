@@ -14,11 +14,11 @@ ComputeLambda <- function(X,a,al,v0,l0){
     ## cluster. This latter mode is useful when pre fitting parameters
     ## to all clusters.
     
-    if (any(dim(v0) != c(N,1)) && any(dim(v0) != c(N,K))) stop("Expected dim(v0) = (N,1) or (N,K).");
-    if (any(dim(l0) != c(N,1)) && any(dim(l0) != c(N,K))) stop("Expected dim(l0) = (N,1) or (N,K).");
-    if (any(dim(al) != c(N,1)) && any(dim(al) != c(N,K))) stop("Expected dim(al) = (N,1) or (N,K).");
+    if ((length(v0) != N) && any(dim(v0) != c(N,K))) stop("Expected len(v0) = N or dim(v0) = (N,K).");
+    if ((length(l0) != N) && any(dim(l0) != c(N,K))) stop("Expected len(l0) = N or dim(l0) = (N,K).");
+    if ((length(al) != N) && any(dim(al) != c(N,K))) stop("Expected len(al) = N or dim(al) = (N,K).");
 
-    clusterSpecificParams = (dim(al)[[2]] == K);
+    clusterSpecificParams = (length(al) != N);
 
     results = .C("ComputeLambda",
         X,a,as.integer(d),
