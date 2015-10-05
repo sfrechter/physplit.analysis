@@ -37,7 +37,7 @@ FitCellSpecificParameters <- function(X, Y, a, l0=NULL, v0 = NULL, al=NULL, kalp
 
     ## Indices for marginalizing out dims
     ii34 = NULL; ir34 = NULL;
-    
+
     ## Begin the iterations
     if (verbose) pb = txtProgressBar(min=1,max=numIters,initial=1,style=3);
     Timers <- TIMER_TIC("ALL_ITERS", Timers);
@@ -86,7 +86,7 @@ FitCellSpecificParameters <- function(X, Y, a, l0=NULL, v0 = NULL, al=NULL, kalp
                          slopeRatio[n,k] = ratio;
                      }
                  }
-                 if (min(slopeRatio) > slopeRatioToStop){
+                 if (min(slopeRatio[!is.nan(slopeRatio)]) > slopeRatioToStop){ ## We'll get NaN's if the slope is zero in both cases.
                      exitMode= "SLOPE_RATIO";
                      if (verbose)
                          cat(sprintf("\nBreaking at t = %d due to min SLOPE_RATIO %8.3f > %8.3f\n", t, min(slopeRatio), slopeRatioToStop));
@@ -127,9 +127,10 @@ FitCellSpecificParameters <- function(X, Y, a, l0=NULL, v0 = NULL, al=NULL, kalp
     cat(sprintf("Completed %d iterations in %1.1f seconds\n%1.3f seconds / iteration\n%1.3e seconds / TSNK / iteration.\n", t, elapsedTime, elapsedTime/t, elapsedTime/t/T/S/N/K));
 
     ibest   = drop(apply(F[t,,],MARGIN=1,FUN="which.max"));
+    Fbest   = diag(F[t,,ibest]);
     l0.best = diag(l0[,ibest]);
     v0.best = diag(v0[,ibest]);
     al.best = diag(al[,ibest]);
     
-    results= list(a = a, al = al, v0 = v0, l0 = l0, al.best = al.best, l0.best = l0.best, v0.best = v0.best, ibest = ibest, F = F[1:t,,], slopeRatio = slopeRatio, L = L, numIters = t, seed = seed, exitMode = exitMode, history = history);
+    results= list(a = a, al = al, v0 = v0, l0 = l0, al.best = al.best, l0.best = l0.best, v0.best = v0.best, ibest = ibest, Fbest = Fbest, F = F[1:t,,], slopeRatio = slopeRatio, L = L, numIters = t, seed = seed, exitMode = exitMode, history = history);
 }
