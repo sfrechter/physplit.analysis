@@ -125,24 +125,22 @@ PrepareInputsForClusterLhnData <- function(whichCells, odorDurInMs = 250, numOdo
             odorName = as.character(odors[[j]]);
             Yf       = Ysub %>% filter(cell==cells[[i]] & odor==odorName);
             y[[nlist]]   = unlist(Yf$binned);
-
             if (max(y[[nlist]])==min(y[[nlist]])){
                 delay[[nlist]] = 0;
             }else{
-                 c = rep(0,maxShift);
-                 for (d in 0:maxShift)
-                     c[[d+1]] = cor(shift(x0,places=d),y[[nlist]]);
-                 delay[[nlist]] = which.max(c)-1;
+                 ym = apply(matrix(y[[nlist]], ncol = 4), MARGIN=1, FUN="mean");
+                 delay[[nlist]] = EstimateResponseDelayByMomentMatching(ym,x0[1:(length(x0)/4)])$delay;
             }
             x[[nlist]] = shift(x0,delay[[nlist]]);
             nlist = nlist + 1
         }
     }
-
     tstr = sapply(1:T, function (t) sprintf("trial %d bin %d", floor((t-1)/T*4)+1, ((t-1)%%(T/4))+1));
     X = array(as.double(unlist(x)), dim=c(T, numOdors, numCells), dimnames=list(tstr,odors,cells));
     Y = array(unlist(y), dim=c(T, numOdors, numCells), dimnames=list(tstr,odors,cells));
+    Ym= apply(array(Y, dim=c(T/4, 4, numOdors, numCells)), MARGIN=c(1,3,4), FUN="mean");
 ############ PART 4 - FIT THE CELLS
+    delay = matrix(delay,ncol=numCells)    
     Fits = NULL;
     afit = NULL;
     if (doFits){
@@ -159,10 +157,14 @@ PrepareInputsForClusterLhnData <- function(whichCells, odorDurInMs = 250, numOdo
 
             if (plotFits){
                 odorWindowFun = function (whichCell, indOdor, offset) {
+                    icell = which(cells == whichCell);
                     iodor = which(dimnames(X)[[2]] == freqOdors[[indOdor]]);
                     ll = apply(matrix(res$Lclust[,iodor,1],ncol=4),1,mean) + offset;
-                    tt = (0:(length(ll)-1))*0.1;
-                    lines(tt,ll,col=rgb(0,0,0),lwd=1);
+                    tt = (0:(length(ll)-1))*binSize;
+                    lines(tt,ll,col=rgb(0,0,0),lwd=2);
+                    lines(tt,Ym[,iodor,icell]+offset,col=rgb(0.0,0.75,0.0),lwd=2,lty=1);
+                    ## Plot the response onset line:;
+                    ## lines(odorWindow[[1]] + delay[[iodor,icell]]*binSize + c(0,0), offset + c(0,4), col="black", lwd=2);
                 }
                 fileName = sprintf("fitCell_%s", cells[[i]]);
 
@@ -173,7 +175,7 @@ PrepareInputsForClusterLhnData <- function(whichCells, odorDurInMs = 250, numOdo
 
                 suffix = list(list(sprintf("al = %1.3f, v0 = %1.3f, l0 = %1.3f", res$al, res$v0, res$l0)));
 
-                PlotRastersForCells(cells[[i]], odors, fileName = fileName, cex=1, odorWindowFun = odorWindowFun, suffixes = suffix )
+                PlotRastersForCells(cells[[i]], odours = odors, fileName = fileName, cex=1, odorWindowFun = odorWindowFun, suffixes = suffix )
             }
         }
     }
