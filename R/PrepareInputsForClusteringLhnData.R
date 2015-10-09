@@ -64,13 +64,19 @@ PrepareInputsForClusterLhnData <- function(whichCells, odorDurInMs = 250, numOdo
                               group_by(odor) %>% count(odor) %>%
                                   arrange(desc(n)) %>% top_n(numOdors,n))$odor;
 
+    if (length(freqOdors) != numOdors){
+        warning(sprintf("Number of frequent odors %d does not match desired number of odors %d, taking %d odors.", length(freqOdors), numOdors, min(c(numOdors, length(freqOdors)))));
+        numOdors = min(c(length(freqOdors), numOdors));
+        freqOdors = freqOdors[1:numOdors];
+    }
+
     ## 2.2: Figure out which cells have data for all of these odors.
     validCells = (df %>%
                       dplyr::select(cell, odor, duration) %>%
                           dplyr::filter(duration==odorDurInMs) %>% distinct %>%
                               group_by(cell) %>%
                                   summarize(numOdorsPerCell = sum(odor %in% freqOdors)) %>%
-                                      dplyr::filter(numOdorsPerCell ==numOdors))$cell;
+                                      dplyr::filter(numOdorsPerCell >= numOdors))$cell;
 
     if (length(validCells) != numCells){
         message(sprintf("%d of %d total, (%d remaining) cells had all frequent odors.", length(validCells), numCells, length(unique(df$cell))));
