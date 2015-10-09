@@ -63,10 +63,10 @@ PrepareInputsForClusterLhnData <- function(whichCells, odorDurInMs = 250, numOdo
                           dplyr::select(cell, odor) %>% distinct %>%
                               group_by(odor) %>% count(odor) %>%
                                   arrange(desc(n)) %>% top_n(numOdors,n))$odor;
-
-    if (length(freqOdors) != numOdors){
-        warning(sprintf("Number of frequent odors %d does not match desired number of odors %d, taking %d odors.", length(freqOdors), numOdors, min(c(numOdors, length(freqOdors)))));
-        numOdors = min(c(length(freqOdors), numOdors));
+    if (length(freqOdors) < numOdors)
+        stop(sprintf("%d frequent odors required, only %d found.", length(freqOdors), numOdors));
+    if (length(freqOdors) > numOdors){
+        warning(sprintf("Number of frequent odors %d is greater than desired number of odors %d, taking %d odors.", length(freqOdors), numOdors, numOdors));
         freqOdors = freqOdors[1:numOdors];
     }
 
