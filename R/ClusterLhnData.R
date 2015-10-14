@@ -13,15 +13,17 @@
 #' @param numClusters The number of clusters to use.
 #' @param kalpha The shape parameter for the gamma prior on alpha.
 #' @param thalpha The scale parameter for the gamma prior on alpha
-#' @param tauv0 The rate constant for the exponential prior on v0.
+#' @param sdv0 The standard deviation of the gaussian prior on membrane potential offset.
 #' @param taua The rate constant for the exponential prior on the drive
 #'   parameters
 #' @param taul0 The rate constant for the exponential prior on l0.
+#' @param minIters The minumum number of iterations.
 #' @param numIters The maximum number of iterations.
 #' @param dt The time constant of the updates.
 #' @param seed The random seed to use.
 #' @param initMode The initialization mode for the clustering. Can be "random",
 #'   "kmeans", or "kmeans++".
+#' @param iclust An initial clustering assignment, if any.
 #' @param verbose If TRUE will print out the progress of the algorithm and other
 #'   diagonstic information.
 #' @param timer If "ON" will time different blocks of the code.
@@ -30,6 +32,9 @@
 #' @param numSlopePoints How many points to take to compute the slope of the
 #'   objective
 #' @param checkToStopEvery How often to compute the stopping ratio.
+#' @param keepHistory A least of strings containing the variables to track.
+#' @param keepHistoryAt A list of iterations at which to record history. If NULL defaults to all.
+#' @param maxPreFitIters The maximum number of iterations to pre fit the cell-specific parameters to the clusters. If set to 0 will not prefit the parameters.
 #' @return A list consisting of
 #'
 #'   \item{seed}{The random seed used.}
@@ -47,6 +52,8 @@
 #'
 #'   \item{L}{A T x S x N x K array containing the final lambda values}
 #'
+#'   \item{Lclust}{A T x S x N array containing the final lambda value for the most likely cluster for each fit.}
+#'
 #'   \item{numIters}{The actual number of iterations that ran.}
 #'
 #'   \item{F}{A numIters x 1 array containing the objective function as function
@@ -61,8 +68,15 @@
 #'   \item{exitMode}{A string with the exit mode of the algorithm: "ITERS" if it
 #'   hit the maximum number of iterations, "SLOPE_RATIO" if it exited early due
 #'   to the slope ratio.}
+#'
+#'   \item{history}{A list containing the values of the tracked variables for the specified iterations.}
+#'
+#'   \item{misc}{A miscellaneous list to hold other variables, used mainly for debugging.}
 #' @export
-ClusterLhnData <- function(Data, numClusters=3, kalpha=10, thalpha=3/20, tauv0 = 0.1, taua=1, taul0=0.5, minIters = 0, numIters=10000, dt=1e-5, seed=0, initMode="random", iclust = NULL,verbose=TRUE, timer="OFF", slopeRatioToStop=100, numSlopePoints=20, checkToStopEvery=100, keepHistory = NULL, keepHistoryAt = NULL, doPrefit = TRUE, maxPreFitIters = 1){
+ClusterLhnData <- function(Data, numClusters=3, kalpha=10, thalpha=3/20, sdv0 = 0.1, taua=1, taul0=0.5, minIters = 0, numIters=10000, dt=1e-5,
+                           seed=0, initMode="random", iclust = NULL,verbose=TRUE, timer="OFF",
+                           slopeRatioToStop=100, numSlopePoints=20, checkToStopEvery=100,
+                           keepHistory = NULL, keepHistoryAt = NULL, maxPreFitIters = 1){
     Timers = TIMER_INIT(status=timer);
 
     X = Data$X;
@@ -83,11 +97,11 @@ ClusterLhnData <- function(Data, numClusters=3, kalpha=10, thalpha=3/20, tauv0 =
     if (length(seed)==1){
         set.seed(seed);
     }else if (length(seed) == N){
-         initMode = "fixed";         
+         initMode = "fixed";
      }else{
           stop("Seed must either be an integer or a vector with NUM_CELLS elements.");
       }
-    
+
     SCALE_GRAD <- function(g){
         ng = sqrt(sum(g^2));
         return(g/max(1,ng));
@@ -130,7 +144,7 @@ ClusterLhnData <- function(Data, numClusters=3, kalpha=10, thalpha=3/20, tauv0 =
                  qnk[[i,j]]   = as.double(seed[[i]] == j);
                  qtsnk[,,i,j] = as.double(seed[[i]] == j);
              }
-         }                        
+         }
      }else if (initMode=="random"){
          a = array(runif(n = 2*K*S), dim=c(2,S,K));
      }else if (initMode=="kmeans"){
@@ -140,12 +154,12 @@ ClusterLhnData <- function(Data, numClusters=3, kalpha=10, thalpha=3/20, tauv0 =
                isample = iclust;
            }
           a = ainit[,,isample];
-          misc$iclust = isample;          
-          if (doPrefit){
+          misc$iclust = isample;
+          if (maxPreFitIters > 0){
               ifit = setdiff(1:N, isample);
               minFitIters=1000;
               numFitIters=10000;
-              dtFit = 1e-2;              
+              dtFit = 1e-2;
               if (verbose)
                   cat("Finding parameters for non-cluster-center cells...\n");
               l0f = NULL;
@@ -168,17 +182,17 @@ ClusterLhnData <- function(Data, numClusters=3, kalpha=10, thalpha=3/20, tauv0 =
                           }
                           l0f[improved,]=res$l0.best[improved];
                           v0f[improved,]=res$v0.best[improved];
-                          alf[improved,]=res$al.best[improved];                          
+                          alf[improved,]=res$al.best[improved];
                       }else{
-                           converged = TRUE;                           
+                           converged = TRUE;
                        }
                   }else{
                        Fbest = res$Fbest;
                        l0f = matrix(res$l0.best, nrow = N - K, ncol = K);
                        v0f = matrix(res$v0.best, nrow = N - K, ncol = K);
-                       alf = matrix(res$al.best, nrow = N - K, ncol = K);                       
+                       alf = matrix(res$al.best, nrow = N - K, ncol = K);
                    }
-                          
+
                   fitIters = fitIters + 1;
               }
               misc$ifit  = ifit;
@@ -296,20 +310,20 @@ ClusterLhnData <- function(Data, numClusters=3, kalpha=10, thalpha=3/20, tauv0 =
         }
         ZqVa = BroadcastMultiply(ZqV, al, 3, ii=ii3, ir=ir3)$Xy;   ## alb = aperm(array(rep(al,T*S*K),dim=c(N,T,S,K)),c(2,3,1,4));
         Timers <- TIMER_TOC("M_STEP_Z", Timers);
-        
+
         Timers <- TIMER_TIC("M_STEP_GRADS", Timers);
-        gradL0 =  ApplySum(Zq,    3, ii=ii3, ir=ir3)$Y; 
+        gradL0 =  ApplySum(Zq,    3, ii=ii3, ir=ir3)$Y;
         gradAl =  ApplySum(ZqV*V, 3, ii=ii3, ir=ir3)$Y + ((kalpha - 1)/al - 1/thalpha); ## Add a prior on Al.
-        gradV0 = -ApplySum(ZqV,   3, ii=ii3, ir=ir3)$Y*al; 
+        gradV0 = -ApplySum(ZqV,   3, ii=ii3, ir=ir3)$Y*al;
 
         if (is.null(ii24)){
             res  = ApplySum(ZqVa*U1, c(2,4), ii=ii24, ir=ir24);
             ii24 = res$ii; ir24 = res$ir;
         }
-        
-        grada = ApplySum(ZqVa*U1, c(2,4), ii=ii24, ir=ir24)$Y;        
+
+        grada = ApplySum(ZqVa*U1, c(2,4), ii=ii24, ir=ir24)$Y;
         G     = ComputeGtsnk(X,a);
-        gradr = ApplySum(ZqVa*G,  c(2,4), ii=ii24, ir=ir24)$Y; 
+        gradr = ApplySum(ZqVa*G,  c(2,4), ii=ii24, ir=ir24)$Y;
         Timers <- TIMER_TOC("M_STEP_GRADS", Timers);
 
         ## 2. Update the parameters
@@ -333,7 +347,7 @@ ClusterLhnData <- function(Data, numClusters=3, kalpha=10, thalpha=3/20, tauv0 =
 
     elapsedTime = endTime[[3]] - startTime[[3]];
     cat(sprintf("Completed %d iterations in %1.1f seconds\n%1.3f seconds / iteration\n%1.3e seconds / TSNK / iteration.\n", t, elapsedTime, elapsedTime/t, elapsedTime/t/T/S/N/K));
-    
+
     ## Extract a clustering from the probabilities
     clust  =  apply(qnk, 1, "which.max");
     pclust =  apply(qnk, 1, "max");
