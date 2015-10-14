@@ -40,8 +40,14 @@ heatmap for set of cells and odours based on correlation distance
 physplit.c161723=subset(PhySplitDB, cell\%in\% names(Spikes) &
   Anatomy.type==4 & class\%in\%c(16,17,23))
 heatmap_cor_dist(physplit.c161723)
+
 # repeat but with class information
 heatmap_cor_dist(physplit.c161723, labRow=physplit.c161723$class,
   labCol=NA, RowSideColors=rainbow(3)[factor(physplit.c161723$class)])
+
+# Same but set limit for the palette
+heatmap_cor_dist(physplit.c161723, labRow=physplit.c161723$class,
+  labCol=NA, RowSideColors=rainbow(3)[factor(physplit.c161723$class)],
+  zlim=c(-1,1))
 }
 
