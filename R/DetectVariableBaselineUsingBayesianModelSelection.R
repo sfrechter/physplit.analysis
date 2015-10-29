@@ -31,7 +31,7 @@
 #' The likelihoods are computed by marginalizing over the rates. For
 #' example, for the two rate case, we have
 #'
-#' p(r|M_2) = int(l1, lmin, lmax) int(l0, lmin, lmax) p(r|l0,l1,M_2) p(l0)p(l1)
+#' p(r|M_2) = 0.5 * int(l1, lmin, lmax) int(l0, lmin, lmax) p(r|l0,l1,M_2) p(l0)p(l1)
 #'
 #' The prior on the rates are assumed uniform, i.e. p(l0) = p(l1) = 1/(lmax - lmin).
 #'
