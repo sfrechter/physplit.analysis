@@ -3,13 +3,7 @@
 #'
 #' In the following, T: the number of time bins, S: the number of odors, N: the
 #' number of cells, K: the number of clusters.
-#'
-#' @param X A binary T x S x N array indicating the odor window for each odor
-#'   and cell.
-#' @param Y An integer valued T x S x N array containing the spike counts in
-#'   each bin.
-#' @param ainit A 2 x S x N containing the parameters of the fitted drives for
-#'   each cell and odor.
+#' @param Data FIXME - what should the input data look like?!
 #' @param numClusters The number of clusters to use.
 #' @param kalpha The shape parameter for the gamma prior on alpha.
 #' @param thalpha The scale parameter for the gamma prior on alpha

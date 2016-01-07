@@ -13,6 +13,8 @@ ClusterLhnData(Data, numClusters = 3, kalpha = 10, thalpha = 3/20,
   keepHistoryAt = NULL, maxPreFitIters = 1)
 }
 \arguments{
+\item{Data}{FIXME - what should the input data look like?!}
+
 \item{numClusters}{The number of clusters to use.}
 
 \item{kalpha}{The shape parameter for the gamma prior on alpha.}
@@ -57,15 +59,6 @@ objective}
 \item{keepHistoryAt}{A list of iterations at which to record history. If NULL defaults to all.}
 
 \item{maxPreFitIters}{The maximum number of iterations to pre fit the cell-specific parameters to the clusters. If set to 0 will not prefit the parameters.}
-
-\item{X}{A binary T x S x N array indicating the odor window for each odor
-and cell.}
-
-\item{Y}{An integer valued T x S x N array containing the spike counts in
-each bin.}
-
-\item{ainit}{A 2 x S x N containing the parameters of the fitted drives for
-each cell and odor.}
 }
 \value{
 A list consisting of

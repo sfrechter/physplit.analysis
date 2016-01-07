@@ -11,7 +11,6 @@
 #' @param verbose Whether to print out the results
 #' @param plot Whether to plot the delayed exponential on top of the firing rate.
 #' @param minDelay The minimum delay value that can be used.
-#' @param minDelay The minimum delay value that can be used.
 #' @param fitOdorProfileOnError Whether to fit the odor profile itself if learning the filter parameters failed.
 #' @return A list consisting of
 #'

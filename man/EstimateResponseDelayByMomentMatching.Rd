@@ -19,8 +19,6 @@ EstimateResponseDelayByMomentMatching(y, x0, verbose = FALSE, plot = FALSE,
 \item{minDelay}{The minimum delay value that can be used.}
 
 \item{fitOdorProfileOnError}{Whether to fit the odor profile itself if learning the filter parameters failed.}
-
-\item{minDelay}{The minimum delay value that can be used.}
 }
 \value{
 A list consisting of
