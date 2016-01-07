@@ -5,32 +5,28 @@
 \title{A function for fitting Shahar's LHN data to the linear-nonlinear-poisson
 model.}
 \usage{
-ClusterLhnData(X, Y, ainit = NULL, numClusters = 3, kalpha = 10,
-  thalpha = 3/20, tauv0 = 0.1, taua = 1, taula = 0.5,
-  numIters = 10000, dt = 1e-05, seed = 0, initMode = "random",
+ClusterLhnData(Data, numClusters = 3, kalpha = 10, thalpha = 3/20,
+  sdv0 = 0.1, taua = 1, taul0 = 0.5, minIters = 0, numIters = 10000,
+  dt = 1e-05, seed = 0, initMode = "random", iclust = NULL,
   verbose = TRUE, timer = "OFF", slopeRatioToStop = 100,
-  numSlopePoints = 20, checkToStopEvery = 100)
+  numSlopePoints = 20, checkToStopEvery = 100, keepHistory = NULL,
+  keepHistoryAt = NULL, maxPreFitIters = 1)
 }
 \arguments{
-\item{X}{A binary T x S x N array indicating the odor window for each odor
-and cell.}
-
-\item{Y}{An integer valued T x S x N array containing the spike counts in
-each bin.}
-
-\item{ainit}{A 2 x S x N containing the parameters of the fitted drives for
-each cell and odor.}
-
 \item{numClusters}{The number of clusters to use.}
 
 \item{kalpha}{The shape parameter for the gamma prior on alpha.}
 
 \item{thalpha}{The scale parameter for the gamma prior on alpha}
 
-\item{tauv0}{The rate constant for the exponential prior on v0.}
+\item{sdv0}{The standard deviation of the gaussian prior on membrane potential offset.}
 
 \item{taua}{The rate constant for the exponential prior on the drive
 parameters}
+
+\item{taul0}{The rate constant for the exponential prior on l0.}
+
+\item{minIters}{The minumum number of iterations.}
 
 \item{numIters}{The maximum number of iterations.}
 
@@ -40,6 +36,8 @@ parameters}
 
 \item{initMode}{The initialization mode for the clustering. Can be "random",
 "kmeans", or "kmeans++".}
+
+\item{iclust}{An initial clustering assignment, if any.}
 
 \item{verbose}{If TRUE will print out the progress of the algorithm and other
 diagonstic information.}
@@ -54,7 +52,20 @@ objective}
 
 \item{checkToStopEvery}{How often to compute the stopping ratio.}
 
-\item{taul0}{The rate constant for the exponential prior on l0.}
+\item{keepHistory}{A least of strings containing the variables to track.}
+
+\item{keepHistoryAt}{A list of iterations at which to record history. If NULL defaults to all.}
+
+\item{maxPreFitIters}{The maximum number of iterations to pre fit the cell-specific parameters to the clusters. If set to 0 will not prefit the parameters.}
+
+\item{X}{A binary T x S x N array indicating the odor window for each odor
+and cell.}
+
+\item{Y}{An integer valued T x S x N array containing the spike counts in
+each bin.}
+
+\item{ainit}{A 2 x S x N containing the parameters of the fitted drives for
+each cell and odor.}
 }
 \value{
 A list consisting of
@@ -74,6 +85,8 @@ A list consisting of
 
   \item{L}{A T x S x N x K array containing the final lambda values}
 
+  \item{Lclust}{A T x S x N array containing the final lambda value for the most likely cluster for each fit.}
+
   \item{numIters}{The actual number of iterations that ran.}
 
   \item{F}{A numIters x 1 array containing the objective function as function
@@ -88,6 +101,10 @@ A list consisting of
   \item{exitMode}{A string with the exit mode of the algorithm: "ITERS" if it
   hit the maximum number of iterations, "SLOPE_RATIO" if it exited early due
   to the slope ratio.}
+
+  \item{history}{A list containing the values of the tracked variables for the specified iterations.}
+
+  \item{misc}{A miscellaneous list to hold other variables, used mainly for debugging.}
 }
 \description{
 In the following, T: the number of time bins, S: the number of odors, N: the
