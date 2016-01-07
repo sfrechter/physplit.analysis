@@ -6,6 +6,7 @@
 #'   summary_array for a subset of the data.
 #' @export
 #' @import physplitdata
+#' @family summary_array
 #' @examples
 #' summary_array=create_raw_summary_array()
 #' # histogram of baseline firing for all cells / odours

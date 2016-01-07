@@ -36,4 +36,8 @@ physplit$baseline=baseline_cell[physplit$cell]
 library(ggplot2)
 qplot(baseline,col=Group, data=subset(physplit, Group\%in\%c("L","O","PN")), geom='density')
 }
+\seealso{
+Other summary_array: \code{\link{createSummarySpikesArray}},
+  \code{\link{createSummarySpikesMat}}
+}
 
