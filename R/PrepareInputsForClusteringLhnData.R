@@ -132,7 +132,7 @@ PrepareInputsForClusterLhnData <- function(whichCells, odorDurInMs = 250, numOdo
     delay = list();
     delayMu = list();
     delaySd = list();
-    require(binhf);
+
     nlist = 1;
     for (i in 1:length(cells)){
         for (j in 1:numOdors){
