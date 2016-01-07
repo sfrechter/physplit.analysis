@@ -55,7 +55,7 @@ EstimateResponseDelayByMomentMatching <- function(y, x0, verbose = FALSE, plot=F
         status = "ERROR";
         if (fitOdorProfileOnError){
             cc = ccf(y,x0,plot=FALSE,lag.max=length(y));
-            delay = max(cc$lag[which.max(cc$acf)], minDelay);                     
+            delay = max(cc$lag[which.max(cc$acf)], minDelay);
         }
     }else{
          status = "OK";
@@ -76,7 +76,7 @@ EstimateResponseDelayByMomentMatching <- function(y, x0, verbose = FALSE, plot=F
     if (plot){
         pdf(file="estimateResponseOnsetByMomentMatching.pdf", width=8,height=8);
         plot(y);
-        lines(shift(f,places=delay),col="red");
+        lines(binhf::shift(f,places=delay),col="red");
         dev.off();
     }
     return(list(a1=a1,a0=a0,tau=tau,delay = delay, status=status, l0 = l0));
