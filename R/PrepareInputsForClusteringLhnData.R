@@ -1,5 +1,5 @@
 #' @export
-#' @importFrom dplyr %>%
+#' @importFrom dplyr %>% select group_by summarize arrange distinct top_n distinct count
 PrepareInputsForClusterLhnData <- function(whichCells, odorDurInMs = 250, numOdors = 36, binStart = 0, binEnd = 3, binSize = 0.1, odorWindow = c(0.5,0.75), doFits = TRUE, fitNumIters = 100000, fitMinIters = 1000, fitDt = 1e-3, fitSlopeRatioToStop = 800, fitNumSlopePoints = 100, plotFits = TRUE, verbose=TRUE, numDelayBootstraps = 10, seed = 0){
 ############ PART 1 - GRAB THE DATA FROM PHYSPLITDATA
 
@@ -64,7 +64,7 @@ PrepareInputsForClusterLhnData <- function(whichCells, odorDurInMs = 250, numOdo
     if (verbose) message("Determining frequent odors.");
     freqOdors <- (df %>%
                       dplyr::filter(duration==odorDurInMs) %>%
-                          dplyr::select(cell, odor) %>% distinct %>%
+                          select(cell, odor) %>% distinct %>%
                               group_by(odor) %>% count(odor) %>%
                                   arrange(desc(n)) %>% top_n(numOdors,n))$odor;
     if (length(freqOdors) < numOdors)
@@ -76,7 +76,7 @@ PrepareInputsForClusterLhnData <- function(whichCells, odorDurInMs = 250, numOdo
 
     ## 2.2: Figure out which cells have data for all of these odors.
     validCells = (df %>%
-                      dplyr::select(cell, odor, duration) %>%
+                      select(cell, odor, duration) %>%
                           dplyr::filter(duration==odorDurInMs) %>% distinct %>%
                               group_by(cell) %>%
                                   summarize(numOdorsPerCell = sum(odor %in% freqOdors)) %>%
