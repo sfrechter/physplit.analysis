@@ -3,7 +3,12 @@
 PrepareInputsForClusterLhnData <- function(whichCells, odorDurInMs = 250, numOdors = 36, binStart = 0, binEnd = 3, binSize = 0.1, odorWindow = c(0.5,0.75), doFits = TRUE, fitNumIters = 100000, fitMinIters = 1000, fitDt = 1e-3, fitSlopeRatioToStop = 800, fitNumSlopePoints = 100, plotFits = TRUE, verbose=TRUE, numDelayBootstraps = 10, seed = 0){
 ############ PART 1 - GRAB THE DATA FROM PHYSPLITDATA
 
-    if (!require(physplitdata)) devtools::install_github("jefferislab/physplitdata",ref="ec3993315ac5d6c7ec0201a6dcba6a6a56636cb8");
+  desc=read.dcf(system.file("DESCRIPTION", package='physplitdata'))
+  sha1=unname(desc[,"RemoteSha"])
+  desired_sha1="ec3993315ac5d6c7ec0201a6dcba6a6a56636cb8"
+  if(!isTRUE(sha1==desired_sha1))
+    warning("Installed physplitdata version (",sha1,
+            ") differs from desired version (",desired_sha1,").")
 
     if (numDelayBootstraps>0)
         set.seed(seed);
