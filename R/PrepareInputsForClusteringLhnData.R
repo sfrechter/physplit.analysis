@@ -2,9 +2,8 @@
 #' @importFrom dplyr %>%
 PrepareInputsForClusterLhnData <- function(whichCells, odorDurInMs = 250, numOdors = 36, binStart = 0, binEnd = 3, binSize = 0.1, odorWindow = c(0.5,0.75), doFits = TRUE, fitNumIters = 100000, fitMinIters = 1000, fitDt = 1e-3, fitSlopeRatioToStop = 800, fitNumSlopePoints = 100, plotFits = TRUE, verbose=TRUE, numDelayBootstraps = 10, seed = 0){
 ############ PART 1 - GRAB THE DATA FROM PHYSPLITDATA
-    if (!require(devtools))     install.packages("devtools");
+
     if (!require(physplitdata)) devtools::install_github("jefferislab/physplitdata",ref="ec3993315ac5d6c7ec0201a6dcba6a6a56636cb8");
-    if (!require(gphys))        devtools::install_github("jefferislab/gphys");
 
     if (numDelayBootstraps>0)
         set.seed(seed);
@@ -19,7 +18,7 @@ PrepareInputsForClusterLhnData <- function(whichCells, odorDurInMs = 250, numOdo
         type = tryCatch({dfSubset[i,]$Anatomy.type}, error = function(e) {NA});
         if (verbose)
             message(sprintf("Processing cell %s, type %s.", cell, type));
-        s = Spikes[[as.character(cell)]][[1]];
+        s = physplitdata::Spikes[[as.character(cell)]][[1]];
         if (length(s) == 4){
             odorConf = attr(s, "oddconf");
             channels = odorConf$chan;
