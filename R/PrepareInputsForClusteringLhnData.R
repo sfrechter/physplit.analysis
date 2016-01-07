@@ -13,7 +13,7 @@ PrepareInputsForClusterLhnData <- function(whichCells, odorDurInMs = 250, numOdo
     if (numDelayBootstraps>0)
         set.seed(seed);
 
-    dfSubset = subset(PhySplitDB, cell%in%whichCells);
+    dfSubset = subset(physplitdata::PhySplitDB, cell%in%whichCells);
     numCells = nrow(dfSubset);
 
     df = NULL;
