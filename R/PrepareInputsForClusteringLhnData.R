@@ -1,14 +1,14 @@
 #' @export
+#' @importFrom dplyr %>%
 PrepareInputsForClusterLhnData <- function(whichCells, odorDurInMs = 250, numOdors = 36, binStart = 0, binEnd = 3, binSize = 0.1, odorWindow = c(0.5,0.75), doFits = TRUE, fitNumIters = 100000, fitMinIters = 1000, fitDt = 1e-3, fitSlopeRatioToStop = 800, fitNumSlopePoints = 100, plotFits = TRUE, verbose=TRUE, numDelayBootstraps = 10, seed = 0){
 ############ PART 1 - GRAB THE DATA FROM PHYSPLITDATA
     if (!require(devtools))     install.packages("devtools");
     if (!require(physplitdata)) devtools::install_github("jefferislab/physplitdata",ref="ec3993315ac5d6c7ec0201a6dcba6a6a56636cb8");
     if (!require(gphys))        devtools::install_github("jefferislab/gphys");
-    require(dplyr);
 
     if (numDelayBootstraps>0)
         set.seed(seed);
-    
+
     dfSubset = subset(PhySplitDB, cell%in%whichCells);
     numCells = nrow(dfSubset);
 
@@ -141,7 +141,7 @@ PrepareInputsForClusterLhnData <- function(whichCells, odorDurInMs = 250, numOdo
                  yy = matrix(y[[nlist]], ncol=4);
                  ym = apply(yy, MARGIN=1, FUN="mean");
                  delay[[nlist]] = EstimateResponseDelayByMomentMatching(ym,x0[1:(length(x0)/4)])$delay;
-                 
+
                  if (numDelayBootstraps == 0){
                      delayMu[[nlist]] = NULL;
                      delaySd[[nlist]] = NULL;
@@ -150,7 +150,7 @@ PrepareInputsForClusterLhnData <- function(whichCells, odorDurInMs = 250, numOdo
                       delays = rep(0, numDelayBootstraps);
                       for (ibs in 1:ncol(trials)){
                           ym = apply(yy[,trials[,ibs]], MARGIN=1, FUN="mean");
-                          delays[[ibs]] = EstimateResponseDelayByMomentMatching(ym,x0[1:(length(x0)/4)])$delay;                          
+                          delays[[ibs]] = EstimateResponseDelayByMomentMatching(ym,x0[1:(length(x0)/4)])$delay;
                       }
                       delayMu[[nlist]] = mean(delays);
                       delaySd[[nlist]] = sd(delays);
@@ -168,7 +168,7 @@ PrepareInputsForClusterLhnData <- function(whichCells, odorDurInMs = 250, numOdo
     delay = matrix(delay,ncol=numCells)
     if (!is.null(delaySd)) delaySd = matrix(delaySd,ncol=numCells);
     if (!is.null(delayMu)) delayMu = matrix(delayMu,ncol=numCells);
-    
+
     Fits = NULL;
     afit = NULL;
     if (doFits){
