@@ -155,7 +155,7 @@ PrepareInputsForClusterLhnData <- function(whichCells, odorDurInMs = 250, numOdo
                       delaySd[[nlist]] = sd(delays);
                   }
             }
-            x[[nlist]] = shift(x0,delay[[nlist]]);
+            x[[nlist]] = binhf::shift(x0,delay[[nlist]]);
             nlist = nlist + 1
         }
     }
