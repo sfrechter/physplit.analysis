@@ -83,3 +83,19 @@ heatmap_cor_dist<-function(cells, odours, col=jet.colors(20), labRow=NULL,
           labRow=labRow, labCol=labCol, ColSideColors=ColSideColors,
           RowSideColors=RowSideColors, ...)
 }
+
+
+#' heatmap for set of cells on nblast anatomy distance
+#' @param x A score matrix calculated by
+#'   \code{\link[nat.nblast]{nblast_allbyall}}
+#' @inheritParams stats::heatmap
+#' @inheritParams heatmap_cor_dist
+#' @export
+heatmap_anatomy <- function(x, col=jet.colors(20), labRow = NULL,
+                            labCol = NULL, ColSideColors, RowSideColors, ...) {
+  heatmap(1-sub_dist_mat(scoremat = x),distfun = function(x) as.dist(1-x),
+          hclustfun = function(x, ...) hclust(x,method='ward.D',...), scale = "none",
+          symm = T, col = col, labRow = labRow, labCol = labCol,
+          ColSideColors = ColSideColors, RowSideColors = RowSideColors,
+          ...)
+}
