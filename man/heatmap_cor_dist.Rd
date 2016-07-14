@@ -21,6 +21,8 @@ function such as \code{\link{jet.colors}}. Defaults to
     use; these default to \code{rownames(x)} or \code{colnames(x)},
     respectively.}
 
+\item{labCol}{character vectors with column labels to use; defaults to cells.}
+
 \item{ColSideColors}{(optional) character vector of length \code{ncol(x)}
     containing the color names for a horizontal side bar that may be used to
     annotate the columns of \code{x}.}
