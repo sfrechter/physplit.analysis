@@ -8,6 +8,13 @@ Maintainer: Shahar Frechter <sfrechter@gmail.com>
 Description: Assorted analysis functions for Shahar's LHN (PhySplit) dataset.
 License: GPL-3
 LazyData: TRUE
-Imports: stats, dplyr, binhf
-Depends: gphys, physplitdata
-Suggests: ggplot2
+Imports:
+    stats,
+    dplyr,
+    binhf
+Depends:
+    gphys,
+    physplitdata
+Suggests:
+    ggplot2
+RoxygenNote: 5.0.1
