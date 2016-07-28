@@ -12,7 +12,7 @@ anyid2shortid <- function(x) {
   x=basename(x)
   if(length(x)>1) return(sapply(x, anyid2shortid))
   # catch anything that already looks like a short id
-  if(grepl("1[0-9]{5}c[0-9]", x)) return(x)
+  if(grepl("^1[0-9]{5}c[0-9]$", x)) return(x)
 
   if(isTRUE(substr(x,1,4) == "nm20")) return(substr(x, 5, 12))
   stack=substr(x,1,7)
