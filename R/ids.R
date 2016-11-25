@@ -1,9 +1,14 @@
-#' Convert any of Shahar's ids (or a filename) to a short id
+#' Convert any identifier / file path to Shahar's short id or stack id
+#'
+#' @description \code{anyid2shortid} converts any of Shahar's ids (or a
+#'   filename) to a short id
 #'
 #' @details shortids look like 120726c3
-#' @param x A stack, cell or short id or a filename that begins with one of these.
+#' @param x A stack, cell or short id or a filename that begins with one of
+#'   these.
 #'
-#' @return A vector of shortids, named by the original id when there were more than 1
+#' @return A vector of short ids or stack ids, named by the original id when
+#'   there were more than 1
 #' @export
 #'
 #' @examples
@@ -18,4 +23,15 @@ anyid2shortid <- function(x) {
   stack=substr(x,1,7)
   x=PhySplitDB$cell[match(stack, physplitdata::PhySplitDB$stack)]
   return(substr(x, 5, 12))
+}
+
+#' \code{anyid2stack} converts any of Shahar's ids (or a filename) to a stack id
+#' @rdname anyid2shortid
+#' @export
+#' @examples
+#' anyid2stack("120726BJK1742SF274LC.lsm")
+#' anyid2stack("120726c3")
+anyid2stack <- function(x) {
+  m=match(anyid2shortid(x), physplitdata::PhySplitDB$shortid)
+  physplitdata::PhySplitDB$stack[m]
 }

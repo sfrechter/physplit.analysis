@@ -2,23 +2,33 @@
 % Please edit documentation in R/ids.R
 \name{anyid2shortid}
 \alias{anyid2shortid}
-\title{Convert any of Shahar's ids (or a filename) to a short id}
+\alias{anyid2stack}
+\title{Convert any identifier / file path to Shahar's short id or stack id}
 \usage{
 anyid2shortid(x)
+
+anyid2stack(x)
 }
 \arguments{
-\item{x}{A stack, cell or short id or a filename that begins with one of these.}
+\item{x}{A stack, cell or short id or a filename that begins with one of
+these.}
 }
 \value{
-A vector of shortids, named by the original id when there were more than 1
+A vector of short ids or stack ids, named by the original id when
+  there were more than 1
 }
 \description{
-Convert any of Shahar's ids (or a filename) to a short id
+\code{anyid2shortid} converts any of Shahar's ids (or a
+  filename) to a short id
+
+\code{anyid2stack} converts any of Shahar's ids (or a filename) to a stack id
 }
 \details{
 shortids look like 120726c3
 }
 \examples{
 anyid2shortid("120726BJK1742SF274LC.lsm")
+anyid2stack("120726BJK1742SF274LC.lsm")
+anyid2stack("120726c3")
 }
 
