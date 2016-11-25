@@ -5,7 +5,7 @@
 \title{heatmap for set of cells and odours based on correlation distance}
 \usage{
 heatmap_cor_dist(cells, odours, col = jet.colors(20), labRow = NULL,
-  labCol = NULL, ColSideColors, RowSideColors, ...)
+  labCol = NULL, ColSideColors, RowSideColors, heatmapfun = heatmap, ...)
 }
 \arguments{
 \item{cells}{Character specifying cells to plot OR a data.frame containing
@@ -31,6 +31,9 @@ function such as \code{\link{jet.colors}}. Defaults to
     containing the color names for a vertical side bar that may be used to
     annotate the rows of \code{x}.}
 
+\item{heatmapfun}{Which heatmap function to use. There are many besides the
+default \code{heatmap}. See examples.}
+
 \item{...}{Additional parameters passed to \code{\link{heatmap}} function}
 }
 \description{
@@ -51,5 +54,11 @@ heatmap_cor_dist(physplit.c161723, labRow=physplit.c161723$class,
 heatmap_cor_dist(physplit.c161723, labRow=physplit.c161723$class,
   labCol=NA, RowSideColors=rainbow(3)[factor(physplit.c161723$class)],
   zlim=c(-1,1))
+
+## use heatmap.2
+\dontrun{
+library(gplots)
+heatmap_cor_dist(physplit.c161723, heatmapfun=heatmap.2)
+}
 }
 

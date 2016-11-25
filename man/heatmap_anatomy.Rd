@@ -5,7 +5,7 @@
 \title{heatmap for set of cells on nblast anatomy distance}
 \usage{
 heatmap_anatomy(x, col = jet.colors(20), labRow = NULL, labCol = NULL,
-  ColSideColors, RowSideColors, ...)
+  ColSideColors, RowSideColors, heatmapfun = heatmap, ...)
 }
 \arguments{
 \item{x}{A score matrix calculated by
@@ -28,6 +28,9 @@ function such as \code{\link{jet.colors}}. Defaults to
 \item{RowSideColors}{(optional) character vector of length \code{nrow(x)}
     containing the color names for a vertical side bar that may be used to
     annotate the rows of \code{x}.}
+
+\item{heatmapfun}{Which heatmap function to use. There are many besides the
+default \code{heatmap}. See examples.}
 
 \item{...}{additional arguments passed on to \code{\link{image}},
     e.g., \code{col} specifying the colors.}

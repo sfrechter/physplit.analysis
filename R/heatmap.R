@@ -7,6 +7,8 @@
 #'   function such as \code{\link{jet.colors}}. Defaults to
 #'   \code{jet.colors(20)}.
 #' @param labCol character vectors with column labels to use; defaults to cells.
+#' @param heatmapfun Which heatmap function to use. There are many besides the
+#'   default \code{heatmap}. See examples.
 #' @inheritParams stats::heatmap
 #' @param ... Additional parameters passed to \code{\link{heatmap}} function
 #' @export
@@ -26,8 +28,15 @@
 #' heatmap_cor_dist(physplit.c161723, labRow=physplit.c161723$class,
 #'   labCol=NA, RowSideColors=rainbow(3)[factor(physplit.c161723$class)],
 #'   zlim=c(-1,1))
+#'
+#' ## use heatmap.2
+#' \dontrun{
+#' library(gplots)
+#' heatmap_cor_dist(physplit.c161723, heatmapfun=heatmap.2)
+#' }
 heatmap_cor_dist<-function(cells, odours, col=jet.colors(20), labRow=NULL,
-                           labCol=NULL, ColSideColors, RowSideColors, ...) {
+                           labCol=NULL, ColSideColors, RowSideColors,
+                           heatmapfun=heatmap,...) {
   # First get the database info we need.
   # End up with a data.frame in the order of cells
   if(is.data.frame(cells)) {
@@ -79,7 +88,7 @@ heatmap_cor_dist<-function(cells, odours, col=jet.colors(20), labRow=NULL,
   # The Heatmap!
   # dendrogram is based on distance of 1-correlation score, but the
   # colours in the heatmap are still the correlation scores (ie hot is highly correlated)
-  heatmap(spcor,distfun=function(x) as.dist(1-x),scale='none',symm=T, col=col,
+  heatmapfun(spcor,distfun=function(x) as.dist(1-x),scale='none',symm=T, col=col,
           labRow=labRow, labCol=labCol, ColSideColors=ColSideColors,
           RowSideColors=RowSideColors, ...)
 }
@@ -92,8 +101,9 @@ heatmap_cor_dist<-function(cells, odours, col=jet.colors(20), labRow=NULL,
 #' @inheritParams heatmap_cor_dist
 #' @export
 heatmap_anatomy <- function(x, col=jet.colors(20), labRow = NULL,
-                            labCol = NULL, ColSideColors, RowSideColors, ...) {
-  heatmap(1-sub_dist_mat(scoremat = x),distfun = function(x) as.dist(1-x),
+                            labCol = NULL, ColSideColors, RowSideColors,
+                            heatmapfun=heatmap, ...) {
+  heatmapfun(1-sub_dist_mat(scoremat = x),distfun = function(x) as.dist(1-x),
           hclustfun = function(x, ...) hclust(x,method='ward.D',...), scale = "none",
           symm = T, col = col, labRow = labRow, labCol = labCol,
           ColSideColors = ColSideColors, RowSideColors = RowSideColors,
