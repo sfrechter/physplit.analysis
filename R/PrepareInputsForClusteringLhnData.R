@@ -1,5 +1,6 @@
 #' @export
 #' @importFrom dplyr %>% select group_by summarize arrange distinct top_n distinct count
+#' @importFrom stats filter sd
 PrepareInputsForClusterLhnData <- function(whichCells, odorDurInMs = 250, numOdors = 36, binStart = 0, binEnd = 3, binSize = 0.1, odorWindow = c(0.5,0.75), doFits = TRUE, fitNumIters = 100000, fitMinIters = 1000, fitDt = 1e-3, fitSlopeRatioToStop = 800, fitNumSlopePoints = 100, plotFits = TRUE, verbose=TRUE, numDelayBootstraps = 10, seed = 0){
 ############ PART 1 - GRAB THE DATA FROM PHYSPLITDATA
 

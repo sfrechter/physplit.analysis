@@ -26,6 +26,7 @@
 #'
 #'   \item{status}{A string. "OK" if the parameters could be learned, "ERROR" if not.}
 #' @export
+#' @importFrom stats ccf uniroot
 EstimateResponseDelayByMomentMatching <- function(y, x0, verbose = FALSE, plot=FALSE, minDelay = 0, fitOdorProfileOnError = TRUE){
     t0 = min(which(x0>0));
     l0 = mean(y[1:(t0-1)]);

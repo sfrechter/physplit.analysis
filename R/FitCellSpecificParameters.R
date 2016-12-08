@@ -1,4 +1,5 @@
 #' @export
+#' @importFrom stats rexp rnorm rgamma lm
 FitCellSpecificParameters <- function(X, Y, a, l0=NULL, v0 = NULL, al=NULL, kalpha=10, thalpha=3/20, sdv0 = 0.1, taua=1, taul0=0.5, minIters = 0, numIters=10000, dt=1e-5, seed = 0, verbose=TRUE, timer="OFF", slopeRatioToStop=500, numSlopePoints=20, checkToStopEvery=100, keepHistory = NULL, keepHistoryAt = NULL){
     Timers = TIMER_INIT(status=timer);
 
@@ -31,7 +32,7 @@ FitCellSpecificParameters <- function(X, Y, a, l0=NULL, v0 = NULL, al=NULL, kalp
 
     F      = array(NaN, dim = c(numIters,N,K));
     slopeRatio = array(NaN, dim = c(N,K));
-    
+
     ## Initialize the history object
     history = NULL;
 
@@ -51,7 +52,7 @@ FitCellSpecificParameters <- function(X, Y, a, l0=NULL, v0 = NULL, al=NULL, kalp
         V = Drive$V;
         Timers <- TIMER_TOC("COMPUTE_LAMBDA", Timers);
         LL = -L + Y*log(L);
-        
+
         ## Compute the objective function
         Timers <- TIMER_TIC("E_STEP_SCALARS", Timers);
         if (is.null(ii34)){
@@ -94,7 +95,7 @@ FitCellSpecificParameters <- function(X, Y, a, l0=NULL, v0 = NULL, al=NULL, kalp
                  }
              }
         }
-       
+
 
         ## M-STEP: Update the parameters
         ## 1. Compute the gradients
@@ -102,11 +103,11 @@ FitCellSpecificParameters <- function(X, Y, a, l0=NULL, v0 = NULL, al=NULL, kalp
         Z   = Y/L - 1;
         ZV  = Z*(V>0);
         Timers <- TIMER_TOC("M_STEP_Z", Timers);
-        
-        Timers <- TIMER_TIC("M_STEP_GRADS", Timers);        
-        gradL0 =  ApplySum(Z,    c(3,4), ii=ii34, ir=ir34)$Y; 
+
+        Timers <- TIMER_TIC("M_STEP_GRADS", Timers);
+        gradL0 =  ApplySum(Z,    c(3,4), ii=ii34, ir=ir34)$Y;
         gradAl =  ApplySum(ZV*V, c(3,4), ii=ii34, ir=ir34)$Y + ((kalpha - 1)/al - 1/thalpha); ## Add a prior on Al.
-        gradV0 = -ApplySum(ZV,   c(3,4), ii=ii34, ir=ir34)$Y*al; 
+        gradV0 = -ApplySum(ZV,   c(3,4), ii=ii34, ir=ir34)$Y*al;
         Timers <- TIMER_TOC("M_STEP_GRADS", Timers);
 
         ## 2. Update the parameters
@@ -131,6 +132,6 @@ FitCellSpecificParameters <- function(X, Y, a, l0=NULL, v0 = NULL, al=NULL, kalp
     l0.best = diag(l0[,ibest]);
     v0.best = diag(v0[,ibest]);
     al.best = diag(al[,ibest]);
-    
+
     results= list(a = a, al = al, v0 = v0, l0 = l0, al.best = al.best, l0.best = l0.best, v0.best = v0.best, ibest = ibest, Fbest = Fbest, F = F[1:t,,], slopeRatio = slopeRatio, L = L, numIters = t, seed = seed, exitMode = exitMode, history = history);
 }

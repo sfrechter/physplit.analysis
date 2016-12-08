@@ -67,6 +67,8 @@
 #'
 #'   \item{misc}{A miscellaneous list to hold other variables, used mainly for debugging.}
 #' @export
+#' @importFrom utils setTxtProgressBar txtProgressBar
+#' @importFrom stats runif
 ClusterLhnData <- function(Data, numClusters=3, kalpha=10, thalpha=3/20, sdv0 = 0.1, taua=1, taul0=0.5, minIters = 0, numIters=10000, dt=1e-5,
                            seed=0, initMode="random", iclust = NULL,verbose=TRUE, timer="OFF",
                            slopeRatioToStop=100, numSlopePoints=20, checkToStopEvery=100,

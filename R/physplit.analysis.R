@@ -6,4 +6,6 @@
 #' @name physplit.analysis
 #' @import gphys
 #' @useDynLib physplit.analysis
+#' @importFrom grDevices dev.off pdf rgb
+#' @importFrom graphics lines par plot
 NULL

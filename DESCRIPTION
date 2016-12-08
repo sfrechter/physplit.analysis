@@ -11,7 +11,8 @@ LazyData: TRUE
 Imports:
     stats,
     dplyr,
-    binhf
+    binhf,
+    nat.nblast
 Depends:
     gphys,
     physplitdata

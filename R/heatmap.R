@@ -12,7 +12,7 @@
 #' @inheritParams stats::heatmap
 #' @param ... Additional parameters passed to \code{\link{heatmap}} function
 #' @export
-#' @importFrom stats heatmap
+#' @importFrom stats heatmap as.dist cor
 #' @examples
 #' # Find LHNs with Anatomy.type 4 and ephys class 16,17,23 for which we have
 #' # spiking response data
@@ -99,12 +99,14 @@ heatmap_cor_dist<-function(cells, odours, col=jet.colors(20), labRow=NULL,
 #'   \code{\link[nat.nblast]{nblast_allbyall}}
 #' @inheritParams stats::heatmap
 #' @inheritParams heatmap_cor_dist
+#' @importFrom nat.nblast sub_dist_mat
 #' @export
+#' @importFrom stats hclust
 heatmap_anatomy <- function(x, col=jet.colors(20), labRow = NULL,
                             labCol = NULL, ColSideColors, RowSideColors,
                             heatmapfun=heatmap, ...) {
-  heatmapfun(1-sub_dist_mat(scoremat = x),distfun = function(x) as.dist(1-x),
-          hclustfun = function(x, ...) hclust(x,method='ward.D',...), scale = "none",
+  heatmapfun(1-sub_dist_mat(scoremat = x), distfun = function(x) as.dist(1-x),
+          hclustfun = function(x, ...) hclust(x, method='ward.D',...), scale = "none",
           symm = T, col = col, labRow = labRow, labCol = labCol,
           ColSideColors = ColSideColors, RowSideColors = RowSideColors,
           ...)

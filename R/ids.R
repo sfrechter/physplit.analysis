@@ -21,7 +21,7 @@ anyid2shortid <- function(x) {
 
   if(isTRUE(substr(x,1,4) == "nm20")) return(substr(x, 5, 12))
   stack=substr(x,1,7)
-  x=PhySplitDB$cell[match(stack, physplitdata::PhySplitDB$stack)]
+  x=physplitdata::PhySplitDB$cell[match(stack, physplitdata::PhySplitDB$stack)]
   return(substr(x, 5, 12))
 }
 
