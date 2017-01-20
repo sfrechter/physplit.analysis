@@ -2,10 +2,13 @@
 % Please edit documentation in R/heatmap.R
 \name{heatmap_cor_dist}
 \alias{heatmap_cor_dist}
+\alias{spike_cor_dist}
 \title{heatmap for set of cells and odours based on correlation distance}
 \usage{
 heatmap_cor_dist(cells, odours, col = jet.colors(20), labRow = NULL,
   labCol = NULL, ColSideColors, RowSideColors, heatmapfun = heatmap, ...)
+
+spike_cor_dist(cells, odours)
 }
 \arguments{
 \item{cells}{Character specifying cells to plot OR a data.frame containing
@@ -38,6 +41,10 @@ default \code{heatmap}. See examples.}
 }
 \description{
 heatmap for set of cells and odours based on correlation distance
+
+\code{spike_cor_dist} calculate the cross-correlation between
+  the spike responses of a set of cells. It is called by
+  \code{heatmap_cor_dist} but you may wish to use this data directly.
 }
 \examples{
 # Find LHNs with Anatomy.type 4 and ephys class 16,17,23 for which we have

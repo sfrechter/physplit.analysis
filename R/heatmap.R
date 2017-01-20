@@ -37,32 +37,7 @@
 heatmap_cor_dist<-function(cells, odours, col=jet.colors(20), labRow=NULL,
                            labCol=NULL, ColSideColors, RowSideColors,
                            heatmapfun=heatmap,...) {
-  # First get the database info we need.
-  # End up with a data.frame in the order of cells
-  if(is.data.frame(cells)) {
-    physplit=cells
-    cells=physplit$cell
-  } else {
-    physplit=physplitdata::PhySplitDB[match(cells, physplitdata::PhySplitDB$cell),]
-  }
-  rownames(physplit)=physplit$cell
-  if(length(missing_cells<-setdiff(physplit$cell, names(physplitdata::smSpikes)))) {
-    stop("Error: some cells without spike data: ", paste(missing_cells, collapse = " "))
-  }
-
-  # if odours not specified, then use all odours
-  if(missing(odours)) odours = unique(unlist(sapply(physplitdata::smSpikes,names)))
-
-  # now collect responses that we need
-  allfreqs=lapply(physplitdata::smSpikes[cells],
-                  function(psthsforcell) sapply(psthsforcell,function(x) x$freq))
-  # pad those frequencies with columns of NAs for missing odours
-  # also reorder odours into the order given by odours
-  # and use sapply => matrix output at the end
-  allfreqs_odours_matrix=sapply(allfreqs,addnacols,odours)
-
-  # Calculate correlation distance between responses for all our cells
-  spcor=cor(allfreqs_odours_matrix,use='pairwise.complete.obs')
+  spcor=spike_cor_dist(cells, odours)
   # remove cells with no spikes
   noSpikes=names(which(is.na(spcor[, 1])))
   if(length(noSpikes)){
@@ -91,6 +66,40 @@ heatmap_cor_dist<-function(cells, odours, col=jet.colors(20), labRow=NULL,
   heatmapfun(spcor,distfun=function(x) as.dist(1-x),scale='none',symm=T, col=col,
           labRow=labRow, labCol=labCol, ColSideColors=ColSideColors,
           RowSideColors=RowSideColors, ...)
+}
+
+#' @rdname heatmap_cor_dist
+#' @export
+#' @description \code{spike_cor_dist} calculate the cross-correlation between
+#'   the spike responses of a set of cells. It is called by
+#'   \code{heatmap_cor_dist} but you may wish to use this data directly.
+spike_cor_dist <- function(cells, odours) {
+  # First get the database info we need.
+  # End up with a data.frame in the order of cells
+  if(is.data.frame(cells)) {
+    physplit=cells
+    cells=physplit$cell
+  } else {
+    physplit=physplitdata::PhySplitDB[match(cells, physplitdata::PhySplitDB$cell),]
+  }
+  rownames(physplit)=physplit$cell
+  if(length(missing_cells<-setdiff(physplit$cell, names(physplitdata::smSpikes)))) {
+    stop("Error: some cells without spike data: ", paste(missing_cells, collapse = " "))
+  }
+
+  # if odours not specified, then use all odours
+  if(missing(odours)) odours = unique(unlist(sapply(physplitdata::smSpikes,names)))
+
+  # now collect responses that we need
+  allfreqs=lapply(physplitdata::smSpikes[cells],
+                  function(psthsforcell) sapply(psthsforcell,function(x) x$freq))
+  # pad those frequencies with columns of NAs for missing odours
+  # also reorder odours into the order given by odours
+  # and use sapply => matrix output at the end
+  allfreqs_odours_matrix=sapply(allfreqs,addnacols,odours)
+
+  # Calculate correlation distance between responses for all our cells
+  cor(allfreqs_odours_matrix,use='pairwise.complete.obs')
 }
 
 
