@@ -29,6 +29,11 @@ at the last step, then you can replaced the last step with. :
 ```r
 devtools::install_github("sfrechter/physplit.analysis", dependencies=FALSE)
 ```
+See e.g. https://github.com/hadley/devtools/issues/1381 for the origin of this error.
+## Hacking physplit.analysis
+You can clone this repo and use RStudio to work with `physplitdata.Rproj` to 
+work on the functions in this package.
+
 You can also install from a local checkout if you happen to have one – something 
 like this.
 
