@@ -16,6 +16,19 @@ devtools::install_github("sfrechter/physplit.analysis")
 The only complication is that you need to have a GitHub PAT (Personal Access Token) 
 setup to install the `physplitdata` repository since it is not yet shared publicly. 
 This is described at https://github.com/jefferislab/physplitdata.
+
+## Problems
+If you run into an error along the lines of:
+
+```
+Downloading GitHub repo jefferislab/physplitdata@master
+from URL https://api.github.com/repos/jefferislab/physplitdata/zipball/master
+Error in stop(github_error(request)) : Not Found (404)
+```
+at the last step, then you can replaced the last step with. :
+```r
+devtools::install_github("sfrechter/physplit.analysis", dependencies=FALSE)
+```
 You can also install from a local checkout if you happen to have one – something 
 like this.
 
