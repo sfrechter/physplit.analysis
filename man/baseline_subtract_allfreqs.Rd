@@ -24,4 +24,3 @@ allfreqs=lapply(physplitdata::smSpikes[cells],
 function(psthsforcell) sapply(psthsforcell,function(x) x$freq))
 baseline_subtract_allfreqs(allfreqs, baselinesamples=1:5)
 }
-

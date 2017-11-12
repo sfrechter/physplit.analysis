@@ -8,4 +8,3 @@
 \description{
 these functions were originally part of RandIgor
 }
-

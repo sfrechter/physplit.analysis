@@ -20,4 +20,3 @@ given an odour response matrix with columns for different odours and rows for
 different sweep timepoints, reorder columns in desired order adding NAs for
 missing odours
 }
-

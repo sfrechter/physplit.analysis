@@ -68,4 +68,3 @@ library(gplots)
 heatmap_cor_dist(physplit.c161723, heatmapfun=heatmap.2)
 }
 }
-

@@ -19,7 +19,9 @@ function such as \code{\link{jet.colors}}. Defaults to
     use; these default to \code{rownames(x)} or \code{colnames(x)},
     respectively.}
 
-\item{labCol}{character vectors with column labels to use; defaults to cells.}
+\item{labCol}{character vectors with row and column labels to
+    use; these default to \code{rownames(x)} or \code{colnames(x)},
+    respectively.}
 
 \item{ColSideColors}{(optional) character vector of length \code{ncol(x)}
     containing the color names for a horizontal side bar that may be used to
@@ -38,4 +40,3 @@ default \code{heatmap}. See examples.}
 \description{
 heatmap for set of cells on nblast anatomy distance
 }
-

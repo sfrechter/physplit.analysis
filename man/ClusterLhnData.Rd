@@ -103,4 +103,3 @@ A list consisting of
 In the following, T: the number of time bins, S: the number of odors, N: the
 number of cells, K: the number of clusters.
 }
-

@@ -42,4 +42,3 @@ the given response rate timecourse, with that of the odor onset
 convolved with a decaying exponential. The parameters of the
 exponential are found by moment matching.
 }
-

@@ -15,4 +15,3 @@ Return a colour palette function
 \seealso{
 \code{\link{colorRampPalette}}
 }
-

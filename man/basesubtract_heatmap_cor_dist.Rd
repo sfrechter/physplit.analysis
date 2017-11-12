@@ -27,4 +27,3 @@ baseline. These are 50ms time points for \code{smSpikes}}
 \description{
 An attaempt to create a basesubtraction option first step at calculating lifetime sparsness
 }
-

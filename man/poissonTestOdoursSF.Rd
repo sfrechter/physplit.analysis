@@ -36,4 +36,3 @@ spikes.pval=sapply(spikerespall, poissonTestOdoursSF, simplify = F)
 \seealso{
 \code{\link{poisson.test}}, \code{\link[gphys]{OdourResponseFromSpikes}}
 }
-
