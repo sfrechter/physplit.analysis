@@ -1,5 +1,7 @@
 #' Create the raw summary array for all spikes
 #'
+#' @description \code{create_simple_summary_array} creates a matrix containing
+#'   every 7 time point summarised from the smooth psth.
 #' @param x A list of smoothed psth objects for cell/odours combinations.
 #'   Defaults to \code{\link{smSpikes}}
 #' @param cells A character vector of cell names enabling calculation of
@@ -27,21 +29,14 @@
 #' library(ggplot2)
 #' qplot(baseline,col=Group, data=subset(physplit, Group%in%c("L","O","PN")), geom='density')
 create_raw_summary_array<-function(x=physplitdata::smSpikes, cells=NULL) {
-  if(!is.null(cells)) {
-    if(!all(cells%in%names(x)))
-      stop("Some cells are not present in cell list x!")
-    x=x[cells]
-  }
-
-  allfreqs=lapply(x,function(psthsforcell) sapply(psthsforcell,function(psth) psth$freq))
-  allodours=unique(unlist(sapply(x,names)))
-  allfreqs_allodours=lapply(allfreqs,addnacols,allodours)
-
-  num_cells <- length(x)
+  allfreqs_allodours <- create_simple_summary_arrays(x=x, cells=cells)
+  num_cells <- length(allfreqs_allodours)
+  allodours <- colnames(allfreqs_allodours[[1]])
   num_odours <- length(allodours)
   num_stats <- 7
   stat_names <- c("baseline", "max1", "max2", "max3", "max4", "max5", "max6")
-  summary_array <- array(dim=c(num_cells, num_odours, num_stats), dimnames=list(names(x), allodours, stat_names))
+  summary_array <- array(dim=c(num_cells, num_odours, num_stats),
+                         dimnames=list(names(allfreqs_allodours), allodours, stat_names))
 
   summary_array[, , 'baseline'] <- t(sapply(allfreqs_allodours, function(x) colMeans(x[1,,drop=FALSE])))
   colMax=function(x) apply(x, 2, max)
@@ -52,4 +47,21 @@ create_raw_summary_array<-function(x=physplitdata::smSpikes, cells=NULL) {
   summary_array[, , 'max5'] <- t(sapply(allfreqs_allodours, function(x) colMax(x[28:35, ])))
   summary_array[, , 'max6'] <- t(sapply(allfreqs_allodours, function(x) colMax(x[32:39, ])))
   summary_array
+}
+
+#' @rdname create_raw_summary_array
+#' @description \code{create_simple_summary_array} creates a list of matrices,
+#'   one for each cell, containing every time point in the smoothed PSTH (rows)
+#'   x every possible odour (cols).
+#' @export
+create_simple_summary_arrays=function (x = physplitdata::smSpikes, cells = NULL)
+{
+  if (!is.null(cells)) {
+    if (!all(cells %in% names(x)))
+      stop("Some cells are not present in cell list x!")
+    x = x[cells]
+  }
+  allfreqs = lapply(x, function(psthsforcell) sapply(psthsforcell,function(psth) psth$freq))
+  allodours = unique(unlist(lapply(x, names)))
+  lapply(allfreqs, addnacols, allodours)
 }

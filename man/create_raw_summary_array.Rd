@@ -2,9 +2,12 @@
 % Please edit documentation in R/summary_array.R
 \name{create_raw_summary_array}
 \alias{create_raw_summary_array}
+\alias{create_simple_summary_arrays}
 \title{Create the raw summary array for all spikes}
 \usage{
 create_raw_summary_array(x = physplitdata::smSpikes, cells = NULL)
+
+create_simple_summary_arrays(x = physplitdata::smSpikes, cells = NULL)
 }
 \arguments{
 \item{x}{A list of smoothed psth objects for cell/odours combinations.
@@ -14,7 +17,12 @@ Defaults to \code{\link{smSpikes}}}
 summary_array for a subset of the data.}
 }
 \description{
-Create the raw summary array for all spikes
+\code{create_simple_summary_array} creates a matrix containing
+  every 7 time point summarised from the smooth psth.
+
+\code{create_simple_summary_array} creates a list of matrices,
+  one for each cell, containing every time point in the smoothed PSTH (rows)
+  x every possible odour (cols).
 }
 \examples{
 summary_array=create_raw_summary_array()
