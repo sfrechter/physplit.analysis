@@ -7,7 +7,7 @@
 \usage{
 truepos_given_sample(samplepos, n, N, replicates = 1000)
 
-\method{summary}{truepos}(x, ci = 0.9)
+\method{summary}{truepos}(object, alpha = 0.1, ...)
 }
 \arguments{
 \item{samplepos}{Number of positives observed in sample}
@@ -17,6 +17,10 @@ truepos_given_sample(samplepos, n, N, replicates = 1000)
 \item{N}{Population size}
 
 \item{replicates}{Number of replicates per tested true pos number}
+
+\item{object}{Sample counts to summarise}
+
+\item{alpha}{The confidence interval is (1-alpha)*100\% (i.e. alpha=0.1 => 90\% CI)}
 }
 \value{
 a vector containing population true positive counts that could have
@@ -45,9 +49,11 @@ plot(ecdf(tps))
 # (if enough replicates were used)
 summary(tps)
 # 95\% confidence interval
-summary(tps, ci=.95)
+summary(tps, alpha=.05)
 
 }
 \seealso{
-\code{\link{sample_finite_population}}
+Other population-sampling: \code{\link{prop.ci}},
+  \code{\link{required.sample.size}},
+  \code{\link{sample_finite_population}}
 }

@@ -58,4 +58,8 @@ qplot(x, col=type, data=resdf, geom='density')
 \seealso{
 \code{\link{truepos_given_sample}} for estimating the true number of
   positives in a finite population given a sample.
+
+Other population-sampling: \code{\link{prop.ci}},
+  \code{\link{required.sample.size}},
+  \code{\link{truepos_given_sample}}
 }

@@ -39,7 +39,7 @@
 #' }
 #' @seealso \code{\link{truepos_given_sample}} for estimating the true number of
 #'   positives in a finite population given a sample.
-#'
+#' @family population-sampling
 sample_finite_population <- function(n, N, p=NULL, npositive=NULL, replicates=1) {
   if(is.null(npositive))
     npositive=round(p*N)
@@ -84,10 +84,10 @@ sample_finite_population <- function(n, N, p=NULL, npositive=NULL, replicates=1)
 #' # (if enough replicates were used)
 #' summary(tps)
 #' # 95% confidence interval
-#' summary(tps, ci=.95)
+#' summary(tps, alpha=.05)
 #'
 #' @importFrom tidyr gather
-#' @seealso \code{\link{sample_finite_population}}
+#' @family population-sampling
 truepos_given_sample <- function(samplepos, n, N, replicates=1000) {
   m=mapply(sample_finite_population, n=n, N=N, npositive=0:N, replicates=replicates)
   dm=as.data.frame(m)
@@ -101,13 +101,85 @@ truepos_given_sample <- function(samplepos, n, N, replicates=1000) {
 
 #' @export
 #' @rdname truepos_given_sample
-summary.truepos <- function(x, ci=0.9) {
-  alpha=(1-ci)/2
-  quantile.levels=c(alpha, 0.5, 1-alpha)
-  qs=quantile(x, quantile.levels)
-  res=c(qs[1], Median=unname(qs[2]), Mode=pmode(x), qs[3])
+#' @param object Sample counts to summarise
+#' @param alpha The confidence interval is (1-alpha)*100\% (i.e. alpha=0.1 => 90\% CI)
+#' @importFrom stats quantile
+summary.truepos <- function(object, alpha=0.1, ...) {
+  quantile.levels=c(alpha/2, 0.5, 1-alpha/2)
+  qs=quantile(object, quantile.levels)
+  res=c(qs[1], Median=unname(qs[2]), Mode=pmode(object), qs[3])
   class(res)=c("summaryDefault", "table")
   res
 }
 
 pmode <- function(x) as.integer(names(which.max(table(x))))
+
+#' Approximate (1-alpha)100\% confidence interval for proportion of a population
+#'
+#' @details Note that this value is generally similar to that obtained with the
+#'   sampling based approach in \code{\link{truepos_given_sample}} when
+#'   \code{pest=0.5} but becomes an increasingly bad approximation as the
+#'   proportion tends to 0 or 1.
+#'
+#' @param n Sample size
+#' @param pest Estimated positive proportion
+#' @param N Population size (default implies infinite population)
+#' @param alpha The confidence interval is (1-alpha)*100\%
+#' @family population-sampling
+#' @references See https://onlinecourses.science.psu.edu/stat414/node/264
+#' @export
+#' @examples
+#' # 95% confidence interval for population size 43, sample size 10 and estimated
+#' # proportion of 0.1 ...
+#' # expressed as a proportion
+#' prop.ci(10, pest=0.1, N=43)
+#' # as a number of positives
+#' prop.ci(10, pest=0.1, N=43)*43
+#'
+#' ## Compare with sampling based calculation
+#' prop.ci(10, pest=0.5, N=48, alpha=.1)*48
+#' summary(truepos_given_sample(samplepos = 5, n=10, N=48))
+#' # more different
+#' prop.ci(10, pest=0.2, N=48, alpha=.1)*48
+#' summary(truepos_given_sample(samplepos = 2, n=10, N=48))
+#' @importFrom stats qnorm
+prop.ci <- function(n, pest=0.5, N=Inf, alpha=0.05) {
+  # normal quantile for given alpha
+  z.a=qnorm(p=1-alpha/2)
+
+  # finite population correction
+  correction=if(is.finite(N)) (N-n)/(N-1) else 1
+
+  half.interval=z.a * sqrt(pest*(1-pest)/n * correction)
+  c(pest-half.interval, pest+half.interval)
+}
+
+#' Estimate sample size to find population proportion with given tolerance
+#'
+#' @details Estimated proportion should have (1-alpha)*100\% confidence of being
+#'   within p +/- epsilon of the true proportions
+#'
+#' @param epsilon Tolerange of proportion estimate (see details)
+#' @param pest The estimated proportion (leave at 0.5 if unknown)
+#' @param N Population size (default implies infinite population)
+#' @inheritParams prop.ci
+#' @references See https://onlinecourses.science.psu.edu/stat414/node/264
+#' @return numeric
+#' @family population-sampling
+#' @export
+#'
+#' @examples
+#' required.sample.size(0.04, alpha=0.1)
+#' required.sample.size(0.04, alpha=0.1, N=40)
+#' # epsilon here is equivalent to +/- 4
+#' required.sample.size(10/40, alpha=0.1, N=40)
+required.sample.size <- function(epsilon, pest=0.5, alpha=0.05, N=Inf) {
+  z.a=qnorm(p=1-alpha/2)
+  m=z.a^2*pest*(1-pest)/epsilon^2
+  if(is.finite(N)) {
+    # finite population correction
+    m / (1 + (m-1) / N)
+  } else {
+    m
+  }
+}
