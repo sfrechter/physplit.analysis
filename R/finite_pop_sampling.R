@@ -69,7 +69,8 @@ sample_finite_population <- function(n, N, p=NULL, npositive=NULL, replicates=1)
 #' @param replicates Number of replicates per tested true pos number
 #'
 #' @return a vector containing population true positive counts that could have
-#'   generated the observed number of sample positives.
+#'   generated the observed number of sample positives. It has class
+#'   \code{truepos}.
 #' @export
 #'
 #' @examples
@@ -78,11 +79,13 @@ sample_finite_population <- function(n, N, p=NULL, npositive=NULL, replicates=1)
 #'
 #' hist(tps, breaks=0:49-.5, col='red')
 #' plot(ecdf(tps))
-#' # calculate median and 90% range
-#' quantile(tps, c(.05,.5,.95))
-#' # calculate mode i.e. most likely true positive number
-#' pmode <- function(x) as.integer(names(which.max(table(x))))
-#' pmode(tps)
+#'
+#' # the mode should be the Maximum Likelihood Estimate
+#' # (if enough replicates were used)
+#' summary(tps)
+#' # 95% confidence interval
+#' summary(tps, ci=.95)
+#'
 #' @importFrom tidyr gather
 #' @seealso \code{\link{sample_finite_population}}
 truepos_given_sample <- function(samplepos, n, N, replicates=1000) {
@@ -91,5 +94,20 @@ truepos_given_sample <- function(samplepos, n, N, replicates=1000) {
   colnames(dm)=1:ncol(dm)
   gm=gather(dm, key = 'truepos', value = 'n')
   gm$truepos=as.integer(gm$truepos)
-  gm$truepos[gm$n==samplepos]
+  res=gm$truepos[gm$n==samplepos]
+  class(res)='truepos'
+  res
 }
+
+#' @export
+#' @rdname truepos_given_sample
+summary.truepos <- function(x, ci=0.9) {
+  alpha=(1-ci)/2
+  quantile.levels=c(alpha, 0.5, 1-alpha)
+  qs=quantile(x, quantile.levels)
+  res=c(qs[1], Median=unname(qs[2]), Mode=pmode(x), qs[3])
+  class(res)=c("summaryDefault", "table")
+  res
+}
+
+pmode <- function(x) as.integer(names(which.max(table(x))))

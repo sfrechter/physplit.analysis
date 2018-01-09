@@ -2,9 +2,12 @@
 % Please edit documentation in R/finite_pop_sampling.R
 \name{truepos_given_sample}
 \alias{truepos_given_sample}
+\alias{summary.truepos}
 \title{Estimate distribution of true positives given sampling resuts}
 \usage{
 truepos_given_sample(samplepos, n, N, replicates = 1000)
+
+\method{summary}{truepos}(x, ci = 0.9)
 }
 \arguments{
 \item{samplepos}{Number of positives observed in sample}
@@ -17,7 +20,8 @@ truepos_given_sample(samplepos, n, N, replicates = 1000)
 }
 \value{
 a vector containing population true positive counts that could have
-  generated the observed number of sample positives.
+  generated the observed number of sample positives. It has class
+  \code{truepos}.
 }
 \description{
 Estimate distribution of true positives given sampling resuts
@@ -36,11 +40,13 @@ tps=truepos_given_sample(samplepos = 2, n=10, N=48)
 
 hist(tps, breaks=0:49-.5, col='red')
 plot(ecdf(tps))
-# calculate median and 90\% range
-quantile(tps, c(.05,.5,.95))
-# calculate mode i.e. most likely true positive number
-pmode <- function(x) as.integer(names(which.max(table(x))))
-pmode(tps)
+
+# the mode should be the Maximum Likelihood Estimate
+# (if enough replicates were used)
+summary(tps)
+# 95\% confidence interval
+summary(tps, ci=.95)
+
 }
 \seealso{
 \code{\link{sample_finite_population}}

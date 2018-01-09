@@ -7,3 +7,7 @@ test_that("sample_finite_population",{
                rep(100L,10))
 })
 
+test_that("sample_finite_population",{
+  expect_is(tps <- truepos_given_sample(samplepos = 2, n=10, N=48), 'truepos')
+  expect_is(summary(tps), 'table')
+})
