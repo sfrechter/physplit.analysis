@@ -102,7 +102,9 @@ truepos_given_sample <- function(samplepos, n, N, replicates=1000) {
 #' @export
 #' @rdname truepos_given_sample
 #' @param object Sample counts to summarise
-#' @param alpha The confidence interval is (1-alpha)*100\% (i.e. alpha=0.1 => 90\% CI)
+#' @param alpha The confidence interval is (1-alpha)*100\% (i.e. alpha=0.1 =>
+#'   90\% CI)
+#' @param ... Additional arguments (currently ignored)
 #' @importFrom stats quantile
 summary.truepos <- function(object, alpha=0.1, ...) {
   quantile.levels=c(alpha/2, 0.5, 1-alpha/2)

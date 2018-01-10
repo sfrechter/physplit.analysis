@@ -20,7 +20,10 @@ truepos_given_sample(samplepos, n, N, replicates = 1000)
 
 \item{object}{Sample counts to summarise}
 
-\item{alpha}{The confidence interval is (1-alpha)*100\% (i.e. alpha=0.1 => 90\% CI)}
+\item{alpha}{The confidence interval is (1-alpha)*100\% (i.e. alpha=0.1 =>
+90\% CI)}
+
+\item{...}{Additional arguments (currently ignored)}
 }
 \value{
 a vector containing population true positive counts that could have
