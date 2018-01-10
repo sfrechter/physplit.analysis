@@ -8,6 +8,8 @@
 #'   this sample we say that the observed positives are those integers
 #'   \code{<=npositive}.
 #'
+#'   NB this is the hypergeometric distribution.
+#'
 #' @param n sample size
 #' @param N Population size
 #' @param p positive probability (e.g. of being an LHN)
@@ -16,6 +18,7 @@
 #' @param replicates Number of samples to draw
 #' @return A vector of length \code{replicates} with counts of sample positives.
 #' @export
+#' @importFrom stats rhyper
 #' @examples
 #' # Draw a random sample of size 24 tracings for a population of 96 profiles in
 #' # a tract known to have 36 LHNs
@@ -48,10 +51,7 @@ sample_finite_population <- function(n, N, p=NULL, npositive=NULL, replicates=1)
   # Now we draw a sample of size n from the integers 1:N
   # the number of sample positives is the number of sampled values in the range
   # 1:npositive
-
-  # This looks a bit like a binomial distribution but in fact has lower
-  # variance since the extreme values are slightly less likley to occur
-  replicate(sum(sample.int(n=N, size = n)<=npositive), n = replicates)
+  rhyper(nn=replicates, m=npositive, n=N-npositive, k=n)
 }
 
 #' Estimate distribution of true positives given sampling resuts
@@ -89,7 +89,7 @@ sample_finite_population <- function(n, N, p=NULL, npositive=NULL, replicates=1)
 #' @importFrom tidyr gather
 #' @family population-sampling
 truepos_given_sample <- function(samplepos, n, N, replicates=1000) {
-  m=mapply(sample_finite_population, n=n, N=N, npositive=0:N, replicates=replicates)
+  m=mapply(rhyper, m=0:N, n=N:0, k=n, nn=replicates)
   dm=as.data.frame(m)
   colnames(dm)=1:ncol(dm)
   gm=gather(dm, key = 'truepos', value = 'n')

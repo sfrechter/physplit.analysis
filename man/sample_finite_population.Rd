@@ -32,6 +32,8 @@ Imagine we have integers \code{1:N} (the population size). We say
   Now we draw a sample of size \code{n} from the integers \code{1:N}. For
   this sample we say that the observed positives are those integers
   \code{<=npositive}.
+
+  NB this is the hypergeometric distribution.
 }
 \examples{
 # Draw a random sample of size 24 tracings for a population of 96 profiles in
