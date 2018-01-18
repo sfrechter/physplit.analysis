@@ -37,9 +37,12 @@ Estimate distribution of true positives given sampling resuts
 The idea is to generate random realisations for all possible numbers
   of true positives, choose only those cases that resulted in the observed
   number of sample positives, and then use that empirical distribution of
-  simulated true positives to estimate the unknown true positive.
+  simulated true positives to estimate the most likely value of the (unknown)
+  number of true positives.
 
-  We can use this approach to estimate
+  NB what we are doing here effectively is to estimate the unknown parameter,
+  \code{m}, of the \code{\link[stats]{Hypergeometric}} distribution, i.e.
+  the number of white balls in the urn.
 }
 \examples{
 # Imagine we have sampled 10 profiles from a tract of 48 and found 2 LHNs

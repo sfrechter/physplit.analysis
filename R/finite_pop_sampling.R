@@ -59,9 +59,12 @@ sample_finite_population <- function(n, N, p=NULL, npositive=NULL, replicates=1)
 #' @details The idea is to generate random realisations for all possible numbers
 #'   of true positives, choose only those cases that resulted in the observed
 #'   number of sample positives, and then use that empirical distribution of
-#'   simulated true positives to estimate the unknown true positive.
+#'   simulated true positives to estimate the most likely value of the (unknown)
+#'   number of true positives.
 #'
-#'   We can use this approach to estimate
+#'   NB what we are doing here effectively is to estimate the unknown parameter,
+#'   \code{m}, of the \code{\link[stats]{Hypergeometric}} distribution, i.e.
+#'   the number of white balls in the urn.
 #'
 #' @param samplepos Number of positives observed in sample
 #' @param n Sample size
